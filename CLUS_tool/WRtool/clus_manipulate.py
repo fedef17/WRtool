@@ -4,7 +4,7 @@ import pickle
 import datetime
 from operator import itemgetter
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from netCDF4 import Dataset
@@ -18,7 +18,7 @@ def cluster_orderingFREQ(indcl,centroids, numclus):
     print('__________________________________________________________')
     print('Cluster ordering in decreasing frequency')
     #----------------------------------------------------------------------------------------
-    
+
     L=[]
     for nclus in range(numclus):
         cl=list(np.where(indcl==nclus)[0])
@@ -27,7 +27,7 @@ def cluster_orderingFREQ(indcl,centroids, numclus):
         #print(ttclus)
         #print('---> {0} days over {1}\n'.format(len(cl),len(indcl)))
         L.append([nclus,fr,cl])
-    
+
     #Cluster labels:
     print('\nCluster labels:')
     print([L[ncl][0] for ncl in range(numclus)])
@@ -40,7 +40,7 @@ def cluster_orderingFREQ(indcl,centroids, numclus):
 
     #Number of days of each cluster
     print('\nNumber of days of each cluster:')
-    print([len(L[ncl][2]) for ncl in range(numclus)]) 
+    print([len(L[ncl][2]) for ncl in range(numclus)])
     print('Total number of days: {0}\n'.format(len(indcl)))
 
     # ----> Cluster order by decreasing frequency:
@@ -69,7 +69,7 @@ def cluster_ordering_asREF(indcl,centroids, numclus, sor):
     print('__________________________________________________________')
     print('Cluster ordering as reference (e.g. observed clusters)')
     #----------------------------------------------------------------------------------------
- 
+
     print('\nReference order:')
     print(sor)
 
@@ -122,12 +122,12 @@ def plot_clusters(area,lon,lat,lon_area,lat_area,numberclusters,numpcs,var_ensLi
         rangecolorbar=np.arange(-270, 300, delta)
     if area=='EAT':
         rangecolorbar=np.arange(-240, 270, delta)
-        #clus_ordered=['NAO+','Blocking','Altantic Ridge','NAO-']  #Order of observed clusters 
+        #clus_ordered=['NAO+','Blocking','Altantic Ridge','NAO-']  #Order of observed clusters
         clus_ordered=['clus1','clus2','clus3','clus4']
     ax = plt.subplots(2, 2, figsize=(18,14), sharex='col', sharey='row')
     txt='Clusters for {0} PCs'.format(numpcs)
     print(txt)
-    
+
     cluspatt=[]
     for nclus in range(numberclusters):
         cl=list(np.where(indcl==nclus)[0])
@@ -145,7 +145,7 @@ def plot_clusters(area,lon,lat,lon_area,lat_area,numberclusters,numpcs,var_ensLi
         #ax.gridlines()
         fill = ax.contourf(lon_ext,lat,cluspattern_ext,rangecolorbar,cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree())
         plt.title(tclus, fontsize=30, fontweight='bold')
-    #             ([x,y,thickness, height])    
+    #             ([x,y,thickness, height])
     cax = plt.axes([0.85, 0.1, 0.02, 0.8])
     cb=plt.colorbar(fill,cax=cax)#, labelsize=18)
     cb.set_label('(m)', rotation=0, fontsize=22)
@@ -153,17 +153,17 @@ def plot_clusters(area,lon,lat,lon_area,lat_area,numberclusters,numpcs,var_ensLi
     plt.suptitle(tit, fontsize=40, fontweight='bold')
     #ax.annotate(txt, xy=(.26, .875),xycoords='figure fraction',fontsize=24)
     plt.subplots_adjust(top=0.85)
-    
+
     left   = 0    # the left side of the subplots of the figure
     right  = 0.8  # the right side of the subplots of the figure
     bottom = 0    # the bottom of the subplots of the figure
     top    = 0.82  # the top of the subplots of the figure
     wspace = 0    # the amount of width reserved for blank space between subplots
     hspace = 0.32   # the amount of height reserved for white space between subplots
-    
+
     plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
     #plt.show()
-        
+
     return ax
 
 
@@ -184,4 +184,3 @@ def compute_pseudoPC(var_ensList,numpcs,solverREF):
     print('{0} ensemble members together dim: {1}'.format(numens,var_allens.shape))
     pseudoPC=solverREF.projectField(var_allens,neofs=numpcs,eofscaling=0,weighted=True)
     return pseudoPC
-

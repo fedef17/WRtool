@@ -9,7 +9,7 @@ import pandas as pd
 import sys
 import matplotlib.pyplot as plt
 import os
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
@@ -135,4 +135,3 @@ print('_________________________________________________________________________
 print('\n******************************************************************************')
 print('END {0}'.format(sys.argv[0]))
 print('*********************************************************************************')
-

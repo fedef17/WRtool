@@ -4,7 +4,7 @@ import pickle
 import datetime
 from eofs.standard import Eof
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
@@ -39,11 +39,11 @@ def eof_computation(var,varunits,lat,lon):
     solver = Eof(var_allens, weights=weights_array)
     end = datetime.datetime.now()
     print('EOF computation took me %s seconds' %(end-start))
-    
+
     #ALL VARIANCE FRACTIONS
     varfrac=solver.varianceFraction()
     acc=np.cumsum(varfrac*100)
-    
+
     #------------------------------------------PCs unscaled  (case 0 of scaling)
     pcs_unscal0 = solver.pcs()
     #------------------------------------------EOFs unscaled  (case 0 of scaling)
@@ -51,7 +51,7 @@ def eof_computation(var,varunits,lat,lon):
 
     #------------------------------------------PCs scaled  (case 1 of scaling)
     pcs_scal1 = solver.pcs(pcscaling=1)
-    
+
     #------------------------------------------EOFs scaled (case 2 of scaling)
     eofs_scal2 = solver.eofs(eofscaling=2)
 
@@ -75,12 +75,12 @@ def eof_plots(neof,pcs_scal1, eofs_scal2,var,varunits,lat,lon,tit,numens):
     plt.title(ttPC, fontsize=34, fontweight='bold')
     plt.grid(True)
     for tickx in ax.xaxis.get_major_ticks():
-        tickx.label.set_fontsize(28) 
+        tickx.label.set_fontsize(28)
     for ticky in ax.yaxis.get_major_ticks():
-        ticky.label.set_fontsize(28) 
+        ticky.label.set_fontsize(28)
     plt.ylabel('PC{0} {1}'.format(neof,varunits),fontsize=28)
     plt.xlabel('ensemble members',fontsize=28)
-    
+
     # Plot the EOF scaled (multiplied by the square-root of their eigenvalues) in the selected domain
     #------------------------------------------EOFs scaled (case 2 of scaling)
 

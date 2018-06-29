@@ -1,6 +1,6 @@
 # Standard packages
 import sys
-from netCDF4 import Dataset, num2date, netcdftime, datetime
+from netCDF4 import Dataset, num2date
 import numpy as np
 
 def sel_season(var,dates,season, wnd=0):
@@ -94,7 +94,7 @@ def sel_season(var,dates,season, wnd=0):
 
     return var_season,dates_season,var_filt
 
-def anomalies(var_filt,var_season, dates_season,season): 
+def anomalies(var_filt,var_season, dates_season,season):
     # Compute anomalies by removing the time-mean for each time (day, month,...)
     print('____________________________________________________________________________________________________________________')
     print('Computing anomalies by removing the time-mean for each time')
@@ -119,10 +119,10 @@ def anomalies(var_filt,var_season, dates_season,season):
             var_anom[mo,:,:]=var_season[mo,:,:]-np.mean(var_filt[mo,:,:],axis=0)
 
     print('\ndimensions of the {0} variable anomalies ---> {1}'.format(season,var_anom.shape))
-       
+
     del var_filt
     return var_anom
-    
+
 
 #____________Selecting only [latS-latN, lonW-lonE] box region
 def sel_area(lat,lon,var,area):
@@ -147,7 +147,7 @@ def sel_area(lat,lon,var,area):
         else:
             var_roll=var
             lon_new=lon
-    
+
     elif area=='PNA':
         printarea='Pacific North American'
         latN = 87.5
@@ -171,7 +171,7 @@ def sel_area(lat,lon,var,area):
         lonE = lon.max()
         var_roll=var
         lon_new=lon
-    
+
     #----------------------------------------------------------------------------------------
     print('____________________________________________________________________________________________________________________')
     print('Selecting the area of interest: {0}'.format(printarea))
@@ -180,10 +180,8 @@ def sel_area(lat,lon,var,area):
 
     latidx = (lat >= latS) & (lat <= latN)
     lonidx = (lon_new >= lonW) & (lon_new <= lonE)
-    
+
     var_area = var_roll[:, latidx][..., lonidx]
     print('Data dimension over the selected area ---> {0}'.format(var_area.shape))
-    
+
     return var_area,lat[latidx],lon_new[lonidx]
-
-

@@ -98,7 +98,7 @@ dependencies:
 - owslib=0.10.3=py27_0
 - pyepsg=0.2.0=py27_0
 - pyshp=1.2.3=py27_0
-- shapely=1.5.13=np111py27_1
+- shapely=1.5.13=py27_0
 - cdms2=2.8.1=np111py27_0
 - esmf=ESMF_6_3_0rp1_ESMP_01=np111py27_2
 - pip:
@@ -107,4 +107,3 @@ dependencies:
   - cdat-info==0.0.0
   - mv2==3.0.0
   - regrid2==3.0.0
-

@@ -8,11 +8,12 @@
 
 ##-------------------------------about paths------------------------------------------
 ## WRtool directory
-WRTOOL_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/CLUS_tool/
+#WRTOOL_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/CLUS_tool/
+WRTOOL_PATH=/home/fabiano/Desktop/Research/git/WRtool/CLUS_tool/
 
 ## Output data directory:
-OUTPUT_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/
-
+#OUTPUT_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/
+OUTPUT_PATH=/home/fabiano/Desktop/Research/lavori/WeatherRegimes/OUT_WRTOOL/
 ## Input data directory:
 ##____________SIM
 #INPUT_PATH=/home/mavilia/DATA/Stream1_Z500remap/
@@ -21,10 +22,16 @@ OUTPUT_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/
 
 ##____________OBS
 #INPUT_PATH=/home/mavilia/DATA/OBS/NCEP/zg500/
-INPUT_PATH=/home/mavilia/DATA/OBS/ERA/zg500/
+#INPUT_PATH=/home/fabiano/DATA/OBS/ERA/zg500/
+INPUT_PATH=/home/fabiano/DATA/ECEARTHdata/SPHINX/AMIP/Z500T1279regrid/Z500base/zg500uab/
 
 ## List of input files
-filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
+#filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
+#filenames[0]='zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc'
+
+filenames[0]='zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc'
+#filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
+
 #filenames[0]='zg500_Aday_NCEPNCAR_2deg_1979-2008.nc'
 #filenames[0]='ens_ec_s4_em00_P129_L500_1981_2011.nc'
 #filenames[0]='zg500_Aday_CNRM-CM6-1_TL127_regrid25_1979-2012.nc'
@@ -43,12 +50,12 @@ filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
 
 ##-------------------------------about data-------------------------------------------
 ## Write only letters or numbers, no punctuation marks!
-## If you want to leave the field empty write 'no' 
+## If you want to leave the field empty write 'no'
 varname=zg           #variable name as in the input file (zg,...)
 level=500            #level to select (hPa)
 freq=day             #data frequency ('day','mon',year',...)
 filterwnd=5          #running mean filter time window
-model=ERAInterim     #model name ECEARTH31 NCEPNCAR ERAInterim
+model=ECEARTH31     #model name ECEARTH31 NCEPNCAR ERAInterim
 institute=rean       #institute name
 kind=obs             #base: baseline, stoc: stochastic physics, obs: observations
 res=144x73           #T255 144x73 N216L85
@@ -64,7 +71,7 @@ area=EAT             #regional average (examples:'EAT':Euro-Atlantic
                      #                           'PNA': Pacific North American
                      #                           'NH': Northern Hemisphere)
 syr=1979             #starting year
-eyr=2008             #end year 
+eyr=2008             #end year
 
 ##---------------------about cluster analysis------------------------------------------
 numclus=4     #number of clusters

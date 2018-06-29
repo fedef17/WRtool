@@ -91,11 +91,11 @@ dependencies:
 - libgcc=5.2.0=0
 - libgfortran=3.0.0=1
 - mkl=2017.0.1=0
-- scitools::olefile=0.42.1=py27_1
-- scitools::owslib=0.10.3=py27_0
-- scitools::pyepsg=0.2.0=py27_0
-- scitools::pyshp=1.2.3=py27_0
-- scitools::shapely=1.5.13=np111py27_1
+- conda-forge::olefile=0.42.1=py27_1
+- conda-forge::owslib=0.10.3=py27_0
+- conda-forge::pyepsg=0.2.0=py27_0
+- conda-forge::pyshp=1.2.3=py27_0
+- conda-forge::shapely=1.5.13=np111py27_1
 - uvcdat::cdms2=2.8.1=np111py27_0
 - uvcdat::esmf=ESMF_6_3_0rp1_ESMP_01=np111py27_2
 - pip:
@@ -104,5 +104,4 @@ dependencies:
   - cdat-info==0.0.0
   - mv2==3.0.0
   - regrid2==3.0.0
-prefix: /home/mavilia/anaconda3/envs/cdms2
-
+prefix: /home/fabiano/anaconda3/envs/cdms2

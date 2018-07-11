@@ -93,7 +93,7 @@ else:
 #_____________________________________________________________
 solver, pcs_scal1, eofs_scal2, pcs_unscal0, eofs_unscal0, varfrac = eof_computation(var_ensList,var_units,lat_area,lon_area)
 
-pickle.dump([solver, pcs_scal1, eofs_scal2, pcs_unscal0, eofs_unscal0, varfrac], open(dir_OUTPUT+'out_EOFcomputation.pic','w'))
+#pickle.dump([solver, pcs_scal1, eofs_scal2, pcs_unscal0, eofs_unscal0, varfrac], open(dir_OUTPUT+'out_EOFcomputation.pic','w'))
 
 #neof=0   # EOF to plot (neof starts from zero!)
 #tit='{0} {1} {2} {3} {4} {5}'.format(varname,model,kind,res,season,area)  # field decomposed with the EOF analysis

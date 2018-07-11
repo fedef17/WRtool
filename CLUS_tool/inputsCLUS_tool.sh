@@ -9,30 +9,36 @@
 ##-------------------------------about paths------------------------------------------
 ## WRtool directory
 #WRTOOL_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/CLUS_tool/
-WRTOOL_PATH=/home/fabiano/Desktop/Research/git/WRtool/CLUS_tool/
+WRTOOL_PATH=/home/fabiano/Research/git/WRtool/CLUS_tool/
 
 ## Output data directory:
 #OUTPUT_PATH=/home/mavilia/WEATHER_REGIMEStool/WRtool_GitHub/
-OUTPUT_PATH=/home/fabiano/Desktop/Research/lavori/WeatherRegimes/OUT_WRTOOL/
+OUTPUT_PATH=/home/fabiano/Research/lavori/WeatherRegimes/OUT_WRTOOL_5eof/
 ## Input data directory:
 ##____________SIM
 #INPUT_PATH=/home/mavilia/DATA/Stream1_Z500remap/
 #INPUT_PATH=/home/mavilia/DATA/Z500T511regrid/Z500base/zg500mab/
 #INPUT_PATH=/home/mavilia/DATA/grib_ECMWF/
 
+model=ECEARTH31     #model name ECEARTH31 NCEPNCAR ERAInterim
+#model=ERAInterim
+#model=NCEPNCAR
+
 ##____________OBS
 #INPUT_PATH=/home/mavilia/DATA/OBS/NCEP/zg500/
 #INPUT_PATH=/home/fabiano/DATA/OBS/ERA/zg500/
 INPUT_PATH=/home/fabiano/DATA/ECEARTHdata/SPHINX/AMIP/Z500T1279regrid/Z500base/zg500uab/
+#INPUT_PATH=/home/fabiano/DATA/OBS/NCEP/zg500/
 
 ## List of input files
 #filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
-#filenames[0]='zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc'
-
 filenames[0]='zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc'
+
+#filenames[0]='zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc'
 #filenames[0]='zg500_Aday_ERAInterim_2deg_1979-2008.nc'
 
 #filenames[0]='zg500_Aday_NCEPNCAR_2deg_1979-2008.nc'
+
 #filenames[0]='ens_ec_s4_em00_P129_L500_1981_2011.nc'
 #filenames[0]='zg500_Aday_CNRM-CM6-1_TL127_regrid25_1979-2012.nc'
 #filenames[0]='zg500_Aday_CMCC-CM2-VHR4_1152x768_regrid25_1979-2014.nc'
@@ -55,7 +61,6 @@ varname=zg           #variable name as in the input file (zg,...)
 level=500            #level to select (hPa)
 freq=day             #data frequency ('day','mon',year',...)
 filterwnd=5          #running mean filter time window
-model=ECEARTH31     #model name ECEARTH31 NCEPNCAR ERAInterim
 institute=rean       #institute name
 kind=obs             #base: baseline, stoc: stochastic physics, obs: observations
 res=144x73           #T255 144x73 N216L85
@@ -78,6 +83,6 @@ numclus=4     #number of clusters
 ## Either set perc or numpcs:
 perc=no                #cluster analysis is applied on a number of PCs such as they explain
                      #'perc' of total variance
-numpcs=4             #number of PCs
+numpcs=3             #number of PCs
 
 nameREF="zg500_day_ERAInterim_obs_144x73_1ens_${season}_${area}_${syr}-${eyr}_${numpcs}pcs"      # reference name files

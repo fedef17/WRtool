@@ -168,10 +168,12 @@ pcset1 = pvec
 pcset2 = pvecREF
 #match_clusters_info(pcset1, pcset2,npcs=9)
 perm, et, ep, patcor = match_pc_sets(pcset2, pcset1)
-print 'Total squared error = ', et
-print 'Phase error =', ep
-print 'Pattern correlation =', patcor
+print('\n ----------------- \n')
+print 'RMS error = ', et
+print '(squared) Phase error =', ep
+print 'Pattern correlation (cosine of angle between) =', patcor
 print 'Optimal permutation =', perm
+print('\n ----------------- \n')
 
 # save et
 namef='{0}et_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
@@ -304,4 +306,3 @@ print('==============================================================')
 print('\n******************************************************************************')
 print('END {0}'.format(sys.argv[0]))
 print('*********************************************************************************')
-

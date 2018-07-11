@@ -3,6 +3,7 @@ import math
 
 import numpy as np
 import cdms2
+from numpy import linalg as LA
 
 
 cdms2.setNetcdfShuffleFlag(0)
@@ -62,24 +63,28 @@ def pc_indices(n):
 
 def error2(pc1, pc2):
     """
-    Compute total squared error, phase error, and pattern correlation of
-    two position vectors.
-
+    Compute root mean squared (RMS) error, phase error, and pattern correlation of two position vectors.
     """
-    # Total error is the sum of the squared errors.
-    error_total = ((pc1 - pc2) ** 2).sum()
+    # RMS error
+    RMS_error = LA.norm(pc1-pc2)
+
     # Compute the scalar product since it is needed to compute both the
     # phase error and the pattern correlation.
     dot = np.dot(pc1, pc2)
+
     # Compute the magnitude of each PC set.
-    mag1 = np.sqrt((pc1 ** 2).sum())
-    mag2 = np.sqrt((pc2 ** 2).sum())
+    mag1 = LA.norm(pc1)
+    mag2 = LA.norm(pc2)
+
     # Compute the phase error.
     error_phase = 2.0 * (mag1 * mag2 - dot)
+    #ratio_EA_to_EP = (mag1-mag2)**2/error_phase
+
     # Compute the pattern correlation (cosine of the angle between the
     # two position vectors).
     pattern_correlation = dot / (mag1 * mag2)
-    return error_total, error_phase, pattern_correlation
+
+    return RMS_error, error_phase, pattern_correlation
 
 
 def match_pc_sets(pcset1, pcset2, debug=False):
@@ -371,4 +376,3 @@ if __name__ == '__main__':
     print ep
     print pc
     print p
-

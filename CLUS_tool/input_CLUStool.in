@@ -17,6 +17,10 @@ NOTE (Irene): Before the weather regime analysis, data should be remapped r144x7
 [exp_name]
 EC_511
 
+# Overwrite output files if already present in the same folder? (if not sure, leave this as False)
+[overwrite_output]
+False
+
 # Name of the dataset (ECEARTH, ERA, NCEP)
 [model_name]
 ECEARTH
@@ -35,17 +39,22 @@ zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc
 
 
 # ERA reference file (used to compare the cluster patterns).
-# The program checks for existing EOF solver and clusters based on standard names. If not found the original file is processed.
+# The program checks for existing EOF solver and clusters in ERA_ref_folder. If not found with the right number of clusters, the original file is processed in the same folder.
 
-[ERA_ref]
+[ERA_ref_orig]
 /home/fabiano/DATA/OBS/ERA/zg500/zg500_Aday_ERAInterim_2deg_1979-2008.nc
+
+[ERA_ref_folder]
+/home/fabiano/Research/lavori/WeatherRegimes/OUT_WRTOOL/ERA_ref/
 
 # NCEP reference file (used to have a measure of the minimum error in the clustering).
 # The program checks for existing EOF solver and clusters based on standard names. If not found the original file is processed.
 
-[NCEP_ref]
+[NCEP_ref_orig]
 /home/fabiano/DATA/OBS/NCEP/zg500/zg500_Aday_NCEPNCAR_2deg_1979-2008.nc
 
+[NCEP_ref_folder]
+/home/fabiano/Research/lavori/WeatherRegimes/OUT_WRTOOL/NCEP_ref/
 
 ##########################################################################
 ##############  options for EOFs/CLUSTERING  ################

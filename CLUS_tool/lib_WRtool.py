@@ -368,18 +368,18 @@ def compute(inputs, out_precompute = None):
 
     # save PC unscaled
     # [time x PCi]
-    namef='{0}PCunscal_{1}.txt'.format(OUTtxt,name_outputs)
+    namef='{0}PCunscal_{1}.txt'.format(OUTPUTdir,name_outputs)
     np.savetxt(namef, pcs_unscal0[:,:numpcs])
 
     #save PC scaled: PCs are scaled to unit variance (divided by the square-root of their eigenvalue)
     # [time x PCi]
-    namef='{0}PCscal1_{1}.txt'.format(OUTtxt,name_outputs)
+    namef='{0}PCscal1_{1}.txt'.format(OUTPUTdir,name_outputs)
     np.savetxt(namef, pcs_scal1[:,:numpcs])
-    print('The {0} PCs in columns are saved in\n{1}'.format(numpcs,OUTtxt))
+    print('The {0} PCs in columns are saved in\n{1}'.format(numpcs,OUTPUTdir))
     print('__________________________________________________________\n')
 
     # save varfrac: the fractional variance represented by each EOF mode
-    namef='{0}varfrac_{1}.txt'.format(OUTtxt,name_outputs)
+    namef='{0}varfrac_{1}.txt'.format(OUTPUTdir,name_outputs)
     np.savetxt(namef, varfrac, fmt='%1.10f')
 
 
@@ -540,13 +540,15 @@ def read_out_clustering(OUTPUTdir, name_outputs, numclus):
     return centrORD, indclORD, cluspattORD, varopt
 
 
-def clusters_comparison(inputs, ):
+def clusters_comparison(inputs, out_precompute = None, solver = None, out_clustering = None, solver_ERA = None, pvec_ERA = None, pvec_NCEP = None):
     """
     Finds the best possible match between two sets of cluster partitions.
     - It computes and saves the projections of the simulated cluster patterns and the reference cluster patterns onto the same reference EOF patterns, obtaining vectors in the PC space (numpcs dimensions).
     - It compares the two cluster partitions computing the RMS error, the phase error, the pattern correlation and the combination that minimizes the mean total RMS error, which can be used to order the simulated clusters as the reference ones.
     - It sorts the clusters as the reference ones.
     - Compares the RMS errors to those between the two reference (ERA vs NCEP) datasets.
+
+    pvec_ERA and pvec_NCEP contain the pcs of ERA and NCEP clusters, in order to compare with the current model.
     """
 
     from itertools import permutations
@@ -569,8 +571,6 @@ def clusters_comparison(inputs, ):
     numclus       = inputs['numclus']  # number of clusters
 
     OUTPUTdir = inputs['OUTPUTdir']
-    nameREF       = sys.argv[9]
-    print('REFERENCE NAME FILES: {0}'.format(nameREF))
 
     # LOAD DATA PROCESSED BY precompute
     if out_precompute is None:
@@ -597,56 +597,55 @@ def clusters_comparison(inputs, ):
         out_clustering = read_out_clustering(OUTPUTdir, name_outputs)
     centrORD, indclORD, cluspattORD, varopt = out_clustering
 
-    # load solverREF
-    solverREF=pickle.load(open('{0}solver_{1}.p'.format(inputs,nameREF), 'rb'))
 
+    if solver_ERA is None:
+        filesolver = '{}solver_{}_{}pcs.p'.format(inputs['ERA_ref_folder'], inputs['name_ERA'], inputs['numpcs'])
 
+        if not (os.path.isfile(filesolver)):
+            raise RuntimeError('EOF solver for ERA with {} pcs not found in {}.'.format(numpcs, inputs['ERA_ref_folder']))
+        else:
+            solver_ERA = pickle.load(open(filesolver, 'rb'))
 
+    if pvec_ERA is None:
+        namef='{}pvec_{}clus_{}_{}pcs.txt'.format(inputs['ERA_ref_folder'],inputs['numclus'], inputs['name_ERA'] ,inputs['numpcs'])
 
+        if not (os.path.isfile(filesolver) and os.path.isfile(namef)):
+            raise RuntimeError('Clustering for ERA with {} clusters and {} pcs not found in {}.'.format(numclus, numpcs, inputs['ERA_ref_folder']))
+        else:
+            pvec_ERA = np.loadtxt(namef)
 
+    if pvec_NCEP is None:
+        namef='{}pvec_{}clus_{}_{}pcs.txt'.format(inputs['NCEP_ref_folder'],inputs['numclus'],inputs['name_NCEP'],inputs['numpcs'])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if not (os.path.isfile(namef)):
+            # Run the analysis on NCEP ref
+            raise RuntimeError('Clustering for NCEP with {} clusters and {} pcs not found in {}.'.format(numclus, numpcs, inputs['NCEP_ref_folder']))
+        else:
+            pvec_NCEP = np.loadtxt(namef)
 
 
     # Compute p vector as in Dawson&Palmer 2015:
     #___________________________________________
-    # The clusters are projected on the REFERENCE EOF base, given by solverREF. The RMS error is computed first in this same base.
+    # The clusters are projected on the REFERENCE EOF base, given by solver_ERA. The RMS error is computed first in this same base.
 
-    pvec=compute_pvectors(numpcs,solverREF,cluspattORD)
+    pvec=compute_pvectors(numpcs,solver_ERA,cluspattORD)
     print('pvec:\n{0}'.format(pvec))
     # save pvec
-    namef='{0}pvec_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}pvec_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef, pvec)
 
-    #load pREF
-    namef='{0}pvec_{1}clus_{2}.txt'.format(OUTtxt,numclus,nameREF)
-    pvecREF=np.loadtxt(namef)
 
-    pseudoPC=compute_pseudoPC(var_ensList,numpcs,solverREF)
+    pseudoPC=compute_pseudoPC(var_ensList,numpcs,solver_ERA)
     print('pseudoPC:\n{0}'.format(pseudoPC))
     # save pseudoPC
-    namef='{0}pseudoPC_{1}.txt'.format(OUTtxt,name_outputs)
+    namef='{0}pseudoPC_{1}.txt'.format(OUTPUTdir,name_outputs)
     np.savetxt(namef,pseudoPC)
 
 
     # Find the match with the given reference clusters
     #_______________________
     pcset1 = pvec
-    pcset2 = pvecREF
+    pcset2 = pvec_ERA
     #match_clusters_info(pcset1, pcset2,npcs=9)
     perm, et, ep, patcor = match_pc_sets(pcset2, pcset1)
     print('\n ----------------- \n')
@@ -657,15 +656,15 @@ def clusters_comparison(inputs, ):
     print('\n ----------------- \n')
 
     # save et
-    namef='{0}et_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}et_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef, et)
 
     # save ep
-    namef='{0}ep_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}ep_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef, ep)
 
     # save patcor
-    namef='{0}patcor_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}patcor_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef, patcor)
 
     #=====================================================
@@ -674,25 +673,16 @@ def clusters_comparison(inputs, ):
     print 'Order the clusters as the reference:', sor
     #=====================================================
 
-
-
-
-
-
-
-
-
-
     # Cluster ordering as reference
     #_______________________
     centrORDasREF,indclORDasREF=cluster_ordering_asREF(indclORD,centrORD,numclus,sor)
 
     # save centrORDasREF
-    namef='{0}centrORDasREF_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}centrORDasREF_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef,centrORDasREF)
 
     # save indclORDasREF
-    namef='{0}indclORDasREF_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}indclORDasREF_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef,indclORDasREF, fmt='%d')
 
     # save freqORDasREF
@@ -702,26 +692,14 @@ def clusters_comparison(inputs, ):
         fr=len(cl)*100./len(indclORDasREF)
         freq.append(fr)
     freqORDasREF=np.array(freq)
-    namef='{0}freq_ORDasREF_{1}clus_{2}.txt'.format(OUTtxt,numclus,name_outputs)
+    namef='{0}freq_ORDasREF_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
     np.savetxt(namef, freqORDasREF)
 
     # save cluspattORDasREF
     cluspattORDasREF=cluspattORD[sor]
     varsave='cluspattern'
-    ofile='{0}cluspatternORDasREF_{1}clus_{2}.nc'.format(OUTnc,numclus,name_outputs)
+    ofile='{0}cluspatternORDasREF_{1}clus_{2}.nc'.format(OUTPUTdir,numclus,name_outputs)
     save_N_2Dfields(lat_area,lon_area,np.array(cluspattORDasREF),varsave,var_units,ofile)
-
-    #if enstoselect!='no':
-    #    tit='{0} {1} {2}{3} {4} {5} {6}'.format(varname,model,kind,enstoselect,res,season,area)
-    #else:
-    #    tit='{0} {1} {2} {3} {4} {5}'.format(varname,model,kind,res,season,area)
-    #
-    #ax=plot_clusters(lon_area,lat_area,cluspattORDasREF,freqORDasREF,area,numclus,obs,tit,patcor)
-    #
-    #namef='{0}clus_patternsORD_{1}clus_{2}.eps'.format(OUTfig,numclus,name_outputs)
-    #ax.figure.savefig(namef)#bbox_inches='tight')
-    #print('Clusters eps figure for {0} weather regimes is saved as\n{1}'.format(area,namef))
-    #print('____________________________________________________________________________________________________________________')
 
     # Compute inter-clusters and intra-clusters statistics
     #if area=='EAT':
@@ -792,6 +770,109 @@ def clusters_comparison(inputs, ):
     print('==============================================================')
 
 
-    print('\n******************************************************************************')
-    print('END {0}'.format(sys.argv[0]))
-    print('*********************************************************************************')
+    print('\n****************************************************\n')
+    print('END CLUSTER COMPARISON')
+    print('*******************************************************\n')
+
+    return centrORDasREF, indclORDasREF, cluspattORDasREF
+
+
+def clusters_plot(inputs, out_precompute = None, out_clus_compare = None):
+    """
+    """
+    # Standard packages
+    #from netCDF4 import Dataset, num2date, datetime
+    import numpy as np
+    import pandas as pd
+    import sys
+    import matplotlib.pyplot as plt
+    import os
+    #from mpl_toolkits.basemap import Basemap
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import ctool
+    from clus_manipulate import plot_clusters
+    from readsavencfield import read3Dncfield
+
+    print('***************************************************\n')
+    print('Running clusters plots')
+    print('***************************************************\n')
+
+    name_outputs  = inputs['name_outputs']  # name of the outputs
+    numens        = inputs['numens']  # total number of ensemble members
+    numpcs        = inputs['numpcs']  # number of principal components
+    perc          = inputs['perc']  # percentage of explained variance for EOF analysis
+    enstoselect   = inputs['enstoselect']  # ensemble member to analyse
+    numclus       = inputs['numclus']  # number of clusters
+
+    OUTPUTdir = inputs['OUTPUTdir']
+
+    # LOAD DATA PROCESSED BY precompute
+    if out_precompute is None:
+        warnings.warn('Reading the output of precompute from files')
+        out_precompute = read_out_precompute(OUTPUTdir, name_outputs, numens)
+
+    syr=pd.to_datetime(dates).year[0]
+    eyr=pd.to_datetime(dates).year[-1]
+
+    name_outputs=name_outputs+'_{0}pcs'.format(numpcs)
+
+    # LOAD DATA PROCESSED BY compute.py
+    if solver is None:
+        solver = read_out_compute(OUTPUTdir, name_outputs)
+    PCunscal = solver.pcs()
+    pc=np.transpose(PCunscal)
+
+    # LOAD DATA PROCESSED BY clusters_comparison.py
+    #______________________________________
+    #load indclORDasREF
+    if out_clus_compare is None:
+        namef='{0}indclORDasREF_{1}clus_{2}.txt'.format(OUTPUTdir,numclus,name_outputs)
+        indclORDasREF=np.loadtxt(namef)
+    else:
+        centrORDasREF, indclORDasREF, cluspattORDasREF = out_clus_compare
+
+    # Plot of the nth the EOFs and PCs
+    #....eof_plots(neof,pcs_scal1, eofs_scal2,var,varunits,lat,lon,tit,numens):
+
+    # PLOT AND SAVE CLUSTERS FIGURE
+    # Plot of cluster patterns in one panel
+    #______________________________________
+    varname = inputs['varname']
+    model = inputs['model_name']
+    res = inputs['resolution']
+    numens = inputs['numens']
+    season = inputs['season']
+    area = inputs['area']
+    # varname=name_outputs.split("_")[0]
+    # model=name_outputs.split("_")[2]
+    # kind=name_outputs.split("_")[3]
+    # res=name_outputs.split("_")[4]
+    # numens=int(name_outputs.split("_")[5][:-3].upper())
+    # season=name_outputs.split("_")[6]
+    # area=name_outputs.split("_")[7]
+
+    if enstoselect is not None:
+        tit='{} {} ens{}\n{} {} {} ({}-{})'.format(varname,model,enstoselect,res,season,area,syr,eyr)
+    else:
+        tit='{} {} {}\n{} {} ({}-{})'.format(varname,model,res,season,area,syr,eyr)
+
+    ax=plot_clusters(area,lon,lat,lon_area,lat_area,numclus,numpcs,var_ensList,indclORDasREF,tit)
+
+    namef='{0}clus_patterns_{1}clus_{2}.eps'.format(OUTPUTdir,numclus,name_outputs)
+    ax.figure.savefig(namef)#bbox_inches='tight')
+    print('Clusters eps figure for {0} weather regimes is saved as\n{1}'.format(area,namef))
+    print('____________________________________________________________________________________________________________________')
+
+    ## Quick plot
+    #tit='cluster pattern 1'
+    #____________Plot the lon-lat map (Orthographic Projection)
+    #fig = plot_ortho(cluspatt[0], lat_area, lon_area, clat=50, clon=0, tit=tit)
+    #fig.show()
+    ##plt.show(block=True)
+
+    print('\n*************************************************\n')
+    print('END CLUS PLOT')
+    print('***************************************************\n')
+
+    return

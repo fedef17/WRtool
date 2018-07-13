@@ -117,11 +117,13 @@ solver_NCEP = pickle.load(open(filesolver, 'rb'))
 pvec_NCEP = np.loadtxt(namef)
 
 
-
-
 ### RUN THE program
 inputs, out_precompute = lwr.precompute(inputs)
 
 solver = lwr.compute(inputs, out_precompute = out_precompute)
 
 out_clustering = lwr.clustering(inputs, solver = solver, out_precompute = out_precompute)
+
+out_clus_compare = lwr.clusters_comparison(inputs, out_precompute = out_precompute, solver = solver, out_clustering = out_clustering, solver_ERA = solver_ERA, pvec_ERA = pvec_ERA, pvec_NCEP = pvec_NCEP)
+
+lwr.clusters_plot(inputs, out_precompute = out_precompute, solver = solver, out_clus_compare = out_clus_compare)

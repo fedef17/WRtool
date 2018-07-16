@@ -15,7 +15,7 @@ NOTE (Irene): Before the weather regime analysis, data should be remapped r144x7
 
 # Name of this post-processing run
 [exp_name]
-EC_511
+EC1279
 
 # Overwrite output files if already present in the same folder? (if not sure, leave this as False)
 [overwrite_output]
@@ -37,6 +37,9 @@ zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc
 ##########################################################################
 ##############  reference FILES  ################
 
+# Compare with ERA and NCEP?
+[run_compare]
+True
 
 # ERA reference file (used to compare the cluster patterns).
 # The program checks for existing EOF solver and clusters in ERA_ref_folder. If not found with the right number of clusters, the original file is processed in the same folder.
@@ -67,6 +70,9 @@ zg500_Aday_EC-EARTH31_T1279base_regrid25_0_1979-2008.nc
 [numclus]
 4
 
+# Calculate significance of clustering (run cluster_sig)
+[check_sig]
+True
 
 ##########################################################################
 ##############  options for PRECOMPUTE -- preprocessing  ################
@@ -100,9 +106,9 @@ day
 ###################  other options  ###################
 
 
-# Number of ensemble member to be extracted (default: all)
-[enstoselect]
-None
+# Number of ensemble member to be extracted. Comment this line with a #, if you don't want to set it. (default: all)
+# [enstoselect]
+# 0
 
 # Spatial resolution of data (just for the output names)
 [resolution]

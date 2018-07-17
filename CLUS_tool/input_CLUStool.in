@@ -19,7 +19,7 @@ EC1279
 
 # Overwrite output files if already present in the same folder? (if not sure, leave this as False)
 [overwrite_output]
-False
+True
 
 # Name of the dataset (ECEARTH, ERA, NCEP)
 [model_name]

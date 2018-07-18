@@ -61,6 +61,42 @@ def pc_indices(n):
     return c, v, n
 
 
+def cosine(x,y):
+    """
+    Calculates the cosine of the angle between x and y. If x and y are 2D, the scalar product is taken using the np.vdot() function.
+    """
+    if x.ndim != y.ndim:
+        raise ValueError('x and y have different dimension')
+    elif x.shape != y.shape:
+        raise ValueError('x and y have different shapes')
+
+    if x.ndim == 1:
+        return np.dot(x,y)/(LA.norm(x)*LA.norm(y))
+    elif x.ndim == 2:
+        return np.vdot(x,y)/(LA.norm(x)*LA.norm(y))
+    else:
+        raise ValueError('Too many dimensions')
+
+
+def rms_calc_fullspace(clus_1, clus_2):
+    """
+    Computes the RMS distance and cosine of the angle between two sets of clusters in the physical space. It is assumed the clusters are in matrix/vector form.
+
+    IMPORTANT!! It assumes the clusters are already ordered. (compares 1 with 1, ecc..)
+    """
+
+    et = []
+    patcor = []
+
+    for c1, c2 in zip(clus_1, clus_2):
+        rms = LA.norm(c1-c2)
+        et.append(rms)
+        cosin = cosine(c1,c2)
+        patcor.append(cosin)
+
+    return et, patcor
+
+
 def error2(pc1, pc2):
     """
     Compute root mean squared (RMS) error, phase error, and pattern correlation of two position vectors.

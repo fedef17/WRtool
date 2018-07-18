@@ -681,12 +681,31 @@ def clusters_comparison(inputs, out_precompute = None, solver = None, out_cluste
     pcset2 = pvec_ERA
     #match_clusters_info(pcset1, pcset2,npcs=9)
     perm, et, ep, patcor = pcmatch.match_pc_sets(pcset2, pcset1)
-    print('\n ----------------- \n')
-    print 'RMS error = ', et
-    print '(squared) Phase error =', ep
-    print 'Pattern correlation (cosine of angle between) =', patcor
-    print 'Optimal permutation =', perm
-    print('\n ----------------- \n')
+
+    pcset1 = pvec_NCEP
+    pcset2 = pvec_ERA
+    #match_clusters_info(pcset1, pcset2,npcs=9)
+    perm_ncep, et_ncep, ep_ncep, patcor_ncep = pcmatch.match_pc_sets(pcset2, pcset1)
+
+    printsep()
+    print('Calculating errors in the {} eof ERA reference space'.format(numpcs))
+    printsep()
+    print('RMS error = {}'.format(et))
+    #print('(squared) Phase error = {}'.format(ep))
+    print('Pattern correlation (cosine of angle between) = {}'.format(patcor))
+    print('Optimal permutation = {}'.format(perm))
+    print('Mean RMS error = {}'.format(np.mean(et)))
+    printsep()
+    print('NCEP RMS error = {}'.format(et_ncep))
+    print('NCEP Pattern correlation (cosine of angle between) = {}'.format(patcor_ncep))
+    print('NCEP Optimal permutation = {}'.format(perm_ncep))
+    print('NCEP Mean RMS error = {}'.format(np.mean(et_ncep)))
+    printsep()
+    rms_ratio = np.array(et)/np.array(et_ncep)
+    print('Ratio to NCEP RMS error (# sigmas) = {}'.format(rms_ratio))
+    print('Mean Ratio (# sigmas) = {}'.format(np.mean(rms_ratio)))
+    printsep()
+    printsep()
 
     # save et
     namef='{}et_{}clus_{}.txt'.format(OUTPUTdir,numclus,name_outputs_pcs)
@@ -733,6 +752,49 @@ def clusters_comparison(inputs, out_precompute = None, solver = None, out_cluste
     varsave='cluspattern'
     ofile='{}cluspatternORDasREF_{}clus_{}.nc'.format(OUTPUTdir,numclus,name_outputs_pcs)
     save_N_2Dfields(lat_area,lon_area,np.array(cluspattORDasREF),varsave,var_units,ofile)
+
+    # Loading ERA ref clusters...
+    et_fs, patcor_fs = pcmatch.rms_calc_fullspace(cluspattORDasREF, cluspattORD_ERA)
+
+    et_fs_ncep, patcor_fs_ncep = pcmatch.rms_calc_fullspace(cluspattORD_NCEP, cluspattORD_ERA)
+
+    printsep()
+    print('Calculating errors in the full space')
+    printsep()
+    print('RMS error = {}'.format(et_fs))
+    print('Pattern correlation (cosine of angle between) = {}'.format(patcor_fs))
+    print('Mean RMS error = {}'.format(np.mean(et_fs)))
+    printsep()
+    print('NCEP RMS error = {}'.format(et_fs_ncep))
+    print('NCEP Pattern correlation (cosine of angle between) = {}'.format(patcor_fs_ncep))
+    print('NCEP Mean RMS error = {}'.format(np.mean(et_fs_ncep)))
+    printsep()
+    rms_ratio_fs = np.array(et_fs)/np.array(et_fs_ncep)
+    print('Ratio to NCEP RMS error (# sigmas) = {}'.format(rms_ratio_fs))
+    print('Mean Ratio (# sigmas) = {}'.format(np.mean(rms_ratio_fs)))
+    printsep()
+
+    printsep()
+    print('Showing difference in the EOF projections\n')
+    eofs = solver.eofs()
+    eofs_era = solver_ERA.eofs()
+
+    cosines_2D = []
+    for i in range(10):
+        cosi = []
+        for j in range(10):
+            cosi.append(pcmatch.cosine(eofs[i], eofs_era[j]))
+        cosines_2D.append(cosi)
+
+    cosines_2D = np.array(cosines_2D)
+    fig6 = plt.figure()
+
+    plt.imshow(cosines_2D)
+    plt.xlabel('EOFs {}'.format(inputs['exp_name']))
+    plt.ylabel('EOFs ERA Interim')
+    plt.title('Cosine of relative angle')
+    plt.colorbar()
+    plt.savefig(OUTPUTdir+'ERAvs{}_cosines_EOFs.pdf'.format(inputs['exp_name']), format = 'pdf')
 
     # Compute inter-clusters and intra-clusters statistics
     #if area=='EAT':

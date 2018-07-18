@@ -145,7 +145,7 @@ if not (os.path.isfile(filesolver) and os.path.isfile(namef)):
     if not os.path.isfile(namef):
         print(namef+' not found\n')
     # Run the analysis on NCEP ref
-    inputs_ncep['filenames'] = [inputs['ERA_ref_orig']]
+    inputs_ncep['filenames'] = [inputs['NCEP_ref_orig']]
     inputs_ncep['OUTPUTdir'] = inputs['dir_OUTPUT']+'NCEP_ref/'
     inputs_ncep, out_precompute_ref = lwr.precompute(inputs_ncep)
     solver_NCEP = lwr.compute(inputs_ncep, out_precompute = out_precompute_ref)
@@ -170,8 +170,8 @@ if inputs['run_compare']:
 else:
     lwr.clusters_plot(inputs, out_precompute = out_precompute, solver = solver, out_clus_compare = out_clustering[:-1])
 
-if inputs['check_sig']:
-    significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
+# if inputs['check_sig']:
+#     significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
 
 print(datetime.datetime.now())
 print('Fine')

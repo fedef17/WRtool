@@ -422,7 +422,7 @@ def read_out_compute(OUTPUTdir, name_outputs, numpcs):
 
     # load solver
     namef='{}solver_{}_{}pcs.p'.format(OUTPUTdir,name_outputs,numpcs)
-    solver = pickle.load(open(namef, 'wb'), protocol=2)
+    solver = pickle.load(open(namef, 'rb'))
 
     # name_savedvar='{}PCunscal_{}.txt'.format(OUTPUTdir,name_outputs)
     # PCunscal=np.loadtxt(name_savedvar)
@@ -574,6 +574,26 @@ def read_out_clustering(OUTPUTdir, name_outputs, numpcs, numclus):
 
     return centrORD, indclORD, cluspattORD, varopt
 
+
+def read_out_cluscompare(OUTPUTdir, name_outputs, numpcs, numclus):
+    """
+    Reads the output of clustering from files.
+    """
+    from readsavencfield import read_N_2Dfields
+
+    # load cluster patterns
+    ifile='{}cluspatternORDasREF_{}clus_{}_{}pcs.nc'.format(OUTPUTdir,numclus,name_outputs, numpcs)
+    cluspattORD,lat_area,lon_area =read_N_2Dfields(ifile)
+
+    #load centrORD
+    namef='{}centrORDasREF_{}clus_{}_{}pcs.txt'.format(OUTPUTdir,numclus,name_outputs, numpcs)
+    centrORD=np.loadtxt(namef)
+
+    # load indclORD
+    namef='{}indclORDasREF_{}clus_{}_{}pcs.txt'.format(OUTPUTdir,numclus,name_outputs, numpcs)
+    indclORD=np.loadtxt(namef)
+
+    return centrORD, indclORD, cluspattORD
 
 def clusters_comparison(inputs, out_precompute = None, solver = None, out_clustering = None, solver_ERA = None, out_clustering_ERA = None, out_clustering_NCEP = None):
     """

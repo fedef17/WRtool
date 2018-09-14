@@ -1,5 +1,7 @@
 Input file for run_CLUS_tool.py.
 
+IMPORTANT NOTE: the value of the keys has to be written in the line that immediately follows the [key] label. If you don't want to set a key, comment it with a '#': #[key]. Commented lines are not considered.
+
 NOTE (Irene): Before the weather regime analysis, data should be remapped r144x73 and the period of interest should be selected: run arrange_inputdata.sh
 
 ##################################################################

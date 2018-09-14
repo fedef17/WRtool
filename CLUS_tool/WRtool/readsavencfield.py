@@ -35,8 +35,15 @@ def read4Dncfield(ifile,**kwargs):
     elif ('plev8' in variabs):
         level       = fh.variables['plev8'][:]
         level_units = fh.variables['plev8'].units
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+
+    try:
+        lat         = fh.variables['lat'][:]
+        lon         = fh.variables['lon'][:]
+    except KeyError as ke:
+        print(repr(ke))
+        lat         = fh.variables['latitude'][:]
+        lon         = fh.variables['longitude'][:]
+
     time        = fh.variables['time'][:]
     time_units  = fh.variables['time'].units
     time_cal    = fh.variables['time'].calendar
@@ -64,9 +71,9 @@ def read4Dncfield(ifile,**kwargs):
     print('calendar: {0}, time units: {1}'.format(time_cal,time_units))
     dates=num2date(time,time_units,time_cal)
     fh.close()
-       
+
     print(txt)
-       
+
     return var, level, lat, lon, dates, time_units, var_units, time_cal
 
 def read3Dncfield(ifile):
@@ -87,8 +94,14 @@ def read3Dncfield(ifile):
         variabs.append(variab)
     #print('The variables in the nc file are: ', variabs)
 
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+    try:
+        lat         = fh.variables['lat'][:]
+        lon         = fh.variables['lon'][:]
+    except KeyError as ke:
+        print(repr(ke))
+        lat         = fh.variables['latitude'][:]
+        lon         = fh.variables['longitude'][:]
+
     time        = fh.variables['time'][:]
     time_units  = fh.variables['time'].units
     var_units   = fh.variables[variabs[-1]].units
@@ -97,9 +110,9 @@ def read3Dncfield(ifile):
     #print(fh.variables)
     dates=num2date(time,time_units)
     fh.close()
-       
+
     print(txt)
-       
+
     return var, lat, lon, dates, time_units, var_units
 
 def read2Dncfield(ifile):
@@ -120,16 +133,22 @@ def read2Dncfield(ifile):
         variabs.append(variab)
     #print('The variables in the nc file are: ', variabs)
 
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+    try:
+        lat         = fh.variables['lat'][:]
+        lon         = fh.variables['lon'][:]
+    except KeyError as ke:
+        print(repr(ke))
+        lat         = fh.variables['latitude'][:]
+        lon         = fh.variables['longitude'][:]
+
     #var_units   = fh.variables[variabs[2]].units
     var         = fh.variables[variabs[2]][:,:]
     txt='{0} dimension [lat x lon]: {1}'.format(variabs[2],var.shape)
     #print(fh.variables)
     fh.close()
-       
+
     #print('\n'+txt)
-       
+
     return var, lat, lon
 
 
@@ -146,17 +165,24 @@ def read_N_2Dfields(ifile):
     for variab in fh.variables:
         variabs.append(variab)
     #print('The variables in the nc file are: ', variabs)
-    
+
     num         = fh.variables['num'][:]
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+
+    try:
+        lat         = fh.variables['lat'][:]
+        lon         = fh.variables['lon'][:]
+    except KeyError as ke:
+        print(repr(ke))
+        lat         = fh.variables['latitude'][:]
+        lon         = fh.variables['longitude'][:]
+
     var         = fh.variables[variabs[3]][:,:,:]
     txt='{0} dimension [num x lat x lon]: {1}'.format(variabs[3],var.shape)
     #print(fh.variables)
     fh.close()
-       
+
     #print('\n'+txt)
-       
+
     return var, lat, lon
 
 
@@ -174,25 +200,25 @@ def save2Dncfield(lats,lons,variab,varname,ofile):
         pass
     dataset = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
     #print(dataset.file_format)
-    
+
     lat = dataset.createDimension('lat', variab.shape[0])
     lon = dataset.createDimension('lon', variab.shape[1])
-    
+
     # Create coordinate variables for 2-dimensions
     lat = dataset.createVariable('lat', np.float32, ('lat',))
     lon = dataset.createVariable('lon', np.float32, ('lon',))
     # Create the actual 2-d variable
     var = dataset.createVariable(varname, np.float64,('lat','lon'))
-    
+
     #print('variable:', dataset.variables[varname])
-    
+
     #for varn in dataset.variables.keys():
     #    print(varn)
     # Variable Attributes
     lat.units='degree_north'
     lon.units='degree_east'
     #var.units = varunits
-    
+
     lat[:]=lats
     lon[:]=lons
     var[:,:]=variab
@@ -218,20 +244,20 @@ def save3Dncfield(lats,lons,variab,varname,varunits,dates,timeunits,time_cal,ofi
         pass
     dataset = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
     #print(dataset.file_format)
-    
+
     time = dataset.createDimension('time', None)
     lat = dataset.createDimension('lat', variab.shape[1])
     lon = dataset.createDimension('lon', variab.shape[2])
-    
+
     # Create coordinate variables for 3-dimensions
     time = dataset.createVariable('time', np.float64, ('time',))
     lat = dataset.createVariable('lat', np.float32, ('lat',))
     lon = dataset.createVariable('lon', np.float32, ('lon',))
     # Create the actual 3-d variable
     var = dataset.createVariable(varname, np.float64,('time','lat','lon'))
-    
+
     #print('variable:', dataset.variables[varname])
-    
+
     #for varn in dataset.variables.keys():
     #    print(varn)
     # Variable Attributes
@@ -240,15 +266,15 @@ def save3Dncfield(lats,lons,variab,varname,varunits,dates,timeunits,time_cal,ofi
     lat.units='degree_north'
     lon.units='degree_east'
     var.units = varunits
-    
-    # Fill in times. 
-    time[:] = date2num(dates, units = timeunits, calendar = time_cal)#, calendar = times.calendar) 
+
+    # Fill in times.
+    time[:] = date2num(dates, units = timeunits, calendar = time_cal)#, calendar = times.calendar)
     print(time_cal)
     print('time values (in units {0}): {1}'.format(timeunits,time[:]))
     print(dates)
- 
+
     #print('time values (in units %s): ' % time)
-    
+
     lat[:]=lats
     lon[:]=lons
     var[:,:,:]=variab
@@ -274,28 +300,28 @@ def save_N_2Dfields(lats,lons,variab,varname,varunits,ofile):
         pass
     dataset = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
     #print(dataset.file_format)
-    
+
     num = dataset.createDimension('num', variab.shape[0])
     lat = dataset.createDimension('lat', variab.shape[1])
     lon = dataset.createDimension('lon', variab.shape[2])
-    
+
     # Create coordinate variables for 3-dimensions
     num = dataset.createVariable('num', np.int32, ('num',))
     lat = dataset.createVariable('lat', np.float32, ('lat',))
     lon = dataset.createVariable('lon', np.float32, ('lon',))
     # Create the actual 3-d variable
     var = dataset.createVariable(varname, np.float64,('num','lat','lon'))
-    
+
     #print('variable:', dataset.variables[varname])
-    
+
     #for varn in dataset.variables.keys():
     #    print(varn)
     # Variable Attributes
     lat.units='degree_north'
     lon.units='degree_east'
     var.units = varunits
-    
-    num[:]=np.arange(variab.shape[0])    
+
+    num[:]=np.arange(variab.shape[0])
     lat[:]=lats
     lon[:]=lons
     var[:,:,:]=variab

@@ -181,6 +181,7 @@ def precompute(inputs):
     var_ensList=[]
     var_ensList_glob=[]
 
+    print(numens, filenames)
     for ens in range(numens):
         ifile=filenames[ens]
         if numens>1:
@@ -225,6 +226,8 @@ def precompute(inputs):
         inputs['numens'] = 1
     else:
         print('All the ensemble members are concatenated one after the other prior to the analysis')
+        var_ensList = np.stack(var_ensList)
+        var_ensList_glob = np.stack(var_ensList_glob)
 
     print('\n**********************************************************\n')
     print('END PRECOMPUTATION\n')

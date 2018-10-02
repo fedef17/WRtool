@@ -74,12 +74,14 @@ inputs_era = cp(inputs)
 inputs_era['model_name'] = 'ERAInterim'
 name_ERA = lwr.std_outname(inputs_era, with_pcs = False)
 inputs_era['name_outputs'] = name_ERA
+inputs_era['numens'] = 1
 inputs['name_ERA'] = name_ERA
 
 inputs_ncep = cp(inputs)
 inputs_ncep['model_name'] = 'NCEPNCAR'
 name_NCEP = lwr.std_outname(inputs_ncep, with_pcs = False)
 inputs_ncep['name_outputs'] = name_NCEP
+inputs_ncep['numens'] = 1
 inputs['name_NCEP'] = name_NCEP
 
 # User-defined libraries

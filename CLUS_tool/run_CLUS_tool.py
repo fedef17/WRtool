@@ -170,8 +170,8 @@ if inputs['run_compare']:
 else:
     lwr.clusters_plot(inputs, out_precompute = out_precompute, solver = solver, out_clus_compare = out_clustering[:-1])
 
-# if inputs['check_sig']:
-#     significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
+if inputs['check_sig']:
+    significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
 
 print(datetime.datetime.now())
 print('Fine')

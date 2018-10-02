@@ -151,6 +151,7 @@ def match_pc_sets(pcset1, pcset2, debug=False):
     errt = np.empty([nperms, number_patterns], dtype=pcset1.dtype)
     errp = np.empty([nperms, number_patterns], dtype=pcset1.dtype)
     pcor = np.empty([nperms, number_patterns], dtype=pcset1.dtype)
+
     perms = []
     # Loop over all permutations.
     for ip, (idx1, idx2) in enumerate(zip(iperm1, iperm2)):
@@ -166,6 +167,13 @@ def match_pc_sets(pcset1, pcset2, debug=False):
     # mean total squared error.
     mse = errt.mean(axis=1)
     jmin = mse.argmin()
+    pcma = pcor.mean(axis=1)
+    jpcmax = pcma.argmax()
+    print(jmin,jpcmax)
+    print('Permutations',perms)
+    print('Error',mse)
+    print('pcor',pcma)
+
     if debug:
         for i in xrange(pcor.shape[0]):
             print pcor[i], perms[i] + [invert(perms[i][1])], mse[i]

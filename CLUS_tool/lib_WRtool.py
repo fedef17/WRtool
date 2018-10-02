@@ -581,8 +581,12 @@ def read_out_clustering(OUTPUTdir, name_outputs, numpcs, numclus):
     indclORD=np.loadtxt(namef)
 
     # Load varopt
-    namef='{}varopt_2to6clus_{}_{}pcs.txt'.format(OUTPUTdir,name_outputs, numpcs)
-    varopt = np.loadtxt(namef)
+    try:
+        namef='{}varopt_2to6clus_{}_{}pcs.txt'.format(OUTPUTdir,name_outputs, numpcs)
+        varopt = np.loadtxt(namef)
+    except IOError:
+        print('File {} not found. Returning None to varopt\n'.format(namef))
+        varopt = None
 
     return centrORD, indclORD, cluspattORD, varopt
 

@@ -2,13 +2,12 @@ import itertools
 import math
 
 import numpy as np
-import cdms2
 from numpy import linalg as LA
 
-
-cdms2.setNetcdfShuffleFlag(0)
-cdms2.setNetcdfDeflateFlag(0)
-cdms2.setNetcdfDeflateLevelFlag(0)
+# import cdms2
+# cdms2.setNetcdfShuffleFlag(0)
+# cdms2.setNetcdfDeflateFlag(0)
+# cdms2.setNetcdfDeflateLevelFlag(0)
 
 
 class MatchError(Exception):

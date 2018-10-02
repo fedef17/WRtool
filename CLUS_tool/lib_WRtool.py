@@ -491,13 +491,17 @@ def clustering(inputs, solver = None, out_precompute = None):
     print('npart ={}'.format(npart))
 
     # This calculates the clustering for k=2 to 7.. useful but may insert an option to do this..
-    for ncl in range(2,7):
-        nfcl,indcl1,centr1,varopt1,iseed=ctool.cluster_toolkit.clus_opt(ncl,npart,pc)
-        indcl0.append(np.subtract(indcl1,1))        #indcl1 starts from 1, indcl0 starts from 0
-        centr.append(centr1)
-        varopt.append(varopt1)
-    indcl=indcl0[numclus-2]
-    centr=centr[numclus-2]
+    if check_2_to_7clus:
+        for ncl in range(2,7):
+            nfcl,indcl1,centr1,varopt1,iseed=ctool.cluster_toolkit.clus_opt(ncl,npart,pc)
+            indcl0.append(np.subtract(indcl1,1))        #indcl1 starts from 1, indcl0 starts from 0
+            centr.append(centr1)
+            varopt.append(varopt1)
+        indcl=indcl0[numclus-2]
+        centr=centr[numclus-2]
+    else:
+        nfcl,indcl1,centr,varopt1,iseed=ctool.cluster_toolkit.clus_opt(numclus, npart, pc)
+        indcl = indcl1-1
 
     # save cluster index
     namef='{}indcl_{}clus_{}.txt'.format(OUTPUTdir,numclus,name_outputs_pcs)
@@ -508,8 +512,11 @@ def clustering(inputs, solver = None, out_precompute = None):
     np.savetxt(namef,centr)
 
     # save cluster optimal variance ratio (this is needed for significance computation: clusters_sig.py)
-    namef='{}varopt_2to6clus_{}.txt'.format(OUTPUTdir,name_outputs_pcs)
-    np.savetxt(namef,varopt, fmt='%1.10f')
+    if check_2_to_7clus:
+        namef='{}varopt_2to6clus_{}.txt'.format(OUTPUTdir,name_outputs_pcs)
+        np.savetxt(namef,varopt, fmt='%1.10f')
+    else:
+        print('Optimal variance ratio is {:8.4f}\n'.format(varopt1))
 
 
     # Cluster ordering in decreasing frequency

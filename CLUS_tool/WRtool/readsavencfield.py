@@ -68,6 +68,8 @@ def read4Dncfield(ifile,**kwargs):
         var=var/9.80665
         var_units='m'
     print('calendar: {0}, time units: {1}'.format(time_cal,time_units))
+
+    time = list(time)
     dates=num2date(time,time_units,time_cal)
     fh.close()
 

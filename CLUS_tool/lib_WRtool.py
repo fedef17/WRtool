@@ -226,8 +226,9 @@ def precompute(inputs):
         inputs['numens'] = 1
     else:
         print('All the ensemble members are concatenated one after the other prior to the analysis')
-        var_ensList = np.concatenate(var_ensList)
-        var_ensList_glob = np.concatenate(var_ensList_glob)
+        # viene fatto dentro eof_computation
+        #var_ensList = np.concatenate(var_ensList)
+        #var_ensList_glob = np.concatenate(var_ensList_glob)
 
     print('\n**********************************************************\n')
     print('END PRECOMPUTATION\n')

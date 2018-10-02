@@ -157,11 +157,14 @@ def match_pc_sets(pcset1, pcset2, debug=False):
     for ip, (idx1, idx2) in enumerate(zip(iperm1, iperm2)):
         perms.append([idx1, idx2])
         # Compute the statistics for each pairing in this permutation.
+        su = 0
         for iip, (i1, i2) in enumerate(zip(idx1, idx2)):
             et, ep, pc = error2(pcset1[i1], pcset2[i2])
             errt[ip, iip] = et
             errp[ip, iip] = ep
             pcor[ip, iip] = pc
+            su += et
+        print(ip, idx2, su/4)
     # Compute the mean squared error (mean of the squared error over each
     # pairing in a permutation), and find the permutation with the smallest
     # mean total squared error.

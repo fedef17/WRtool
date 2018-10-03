@@ -3,6 +3,39 @@ from netCDF4 import Dataset, num2date, date2num
 import numpy as np
 import os
 
+def check_increasing_latlon(var, lat, lon):
+    """
+    Checks that the latitude and longitude are in increasing order. Returns ordered arrays.
+
+    Assumes that lat and lon are the second-last and last dimensions of the array var.
+    """
+    lat = np.array(lat)
+    lon = np.array(lon)
+    var = np.array(var)
+
+    revlat = False
+    revlon = False
+    if lat[1] < lat[0]:
+        revlat = True
+        print('Latitude is in reverse order! Ordering..\n')
+    if lon[1] < lon[0]:
+        revlon = True
+        print('Longitude is in reverse order! Ordering..\n')
+
+    if revlat and not revlon:
+        var = var[..., ::-1, :]
+        lat = lat[::-1]
+    elif revlon and not revlat:
+        var = var[..., :, ::-1]
+        lon = lon[::-1]
+    elif revlat and revlon:
+        var = var[..., ::-1, ::-1]
+        lat = lat[::-1]
+        lon = lon[::-1]
+
+    return var, lat, lon
+
+
 def read4Dncfield(ifile,**kwargs):
     '''
     GOAL
@@ -73,6 +106,7 @@ def read4Dncfield(ifile,**kwargs):
     dates=num2date(time,time_units,time_cal)
     fh.close()
 
+    var, lat, lon = check_increasing_latlon(var, lat, lon)
     print(txt)
 
     return var, level, lat, lon, dates, time_units, var_units, time_cal
@@ -112,6 +146,7 @@ def read3Dncfield(ifile):
     dates=num2date(time,time_units)
     fh.close()
 
+    var, lat, lon = check_increasing_latlon(var, lat, lon)
     print(txt)
 
     return var, lat, lon, dates, time_units, var_units
@@ -148,6 +183,7 @@ def read2Dncfield(ifile):
     #print(fh.variables)
     fh.close()
 
+    var, lat, lon = check_increasing_latlon(var, lat, lon)
     #print('\n'+txt)
 
     return var, lat, lon
@@ -182,6 +218,7 @@ def read_N_2Dfields(ifile):
     #print(fh.variables)
     fh.close()
 
+    var, lat, lon = check_increasing_latlon(var, lat, lon)
     #print('\n'+txt)
 
     return var, lat, lon

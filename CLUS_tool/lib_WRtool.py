@@ -1050,7 +1050,7 @@ def clusters_sig(inputs, solver = None, out_clustering = None):
     print('significance computation took me %s seconds' %(end-start))
 
     print 'significance =', significance
-    print '{.16f}'.format(significance[2])
+    print '{:16f}'.format(significance[2])
     print 'significance for 4 clusters =', significance[2]
 
     namef='{}sig_2to6clus_{}nrsamp_{}.txt'.format(OUTPUTdir,nrsamp,name_outputs_pcs)

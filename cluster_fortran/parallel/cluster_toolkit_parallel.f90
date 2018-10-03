@@ -157,6 +157,8 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         DEBUG_INFO = .TRUE.
         WRITE(*,*) 'Parto!'
 
+        WRITE(*,*) NRSAMP, PSIZE, NPART, NFLD, NPC, NDIS, PC, VAROPT
+
         ALLOCATE(TS(NFLD))
         ! Compute PC statistics.
         DO JPC = 1, NPC

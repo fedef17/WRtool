@@ -143,7 +143,7 @@ def plot_clusters(area,lon,lat,lon_area,lat_area,numberclusters,numpcs,var_ensLi
         ax.set_global()
         ax.coastlines()
         #ax.gridlines()
-        fill = ax.contourf(lon_ext,lat,cluspattern_ext,rangecolorbar,cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree())
+        fill = ax.contourf(lon_ext,lat,cluspattern_ext,rangecolorbar,cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree(), extend = 'both')
         plt.title(tclus, fontsize=30, fontweight='bold')
     #             ([x,y,thickness, height])
     cax = plt.axes([0.85, 0.1, 0.02, 0.8])

@@ -19,7 +19,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 !                                              significance that supports
 !                                              OpenMP parallelism and Python
 !                                              via f2py.
-!      
+!
 ! Notes:
 !     To compile with f2py:
 !         f2py --fcompiler=gfortran --f90flags="-cpp -fopenmp" -lgomp \
@@ -30,7 +30,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 
 
     IMPLICIT NONE
-    
+
 
     PRIVATE
     PUBLIC :: CLUS_SIG_P
@@ -46,7 +46,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
     INTEGER, PARAMETER :: ADRNG_STATE_SIZE = 97 ! size of RNG state
     TYPE :: ADRNG_T                             ! custom type to store state
         INTEGER                              :: SEED   = -11111
-        INTEGER                              :: SCALAR = -1 
+        INTEGER                              :: SCALAR = -1
         INTEGER, DIMENSION(ADRNG_STATE_SIZE) :: STATE  = 0
     END TYPE ADRNG_T
 
@@ -125,7 +125,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         REAL :: STAT2
         REAL, DIMENSION(NPC, NFLD)     :: DPC
         REAL, DIMENSION(NPC, PSIZE+1)  :: CENTR
-        
+
         ! Array of random number generators.
         TYPE(ADRNG_T), DIMENSION(NRSAMP) :: RNGS
         !TYPE(RNG_T), DIMENSION(NRSAMP) :: RNGS
@@ -153,6 +153,9 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         ELSE
             DEBUG_INFO = .TRUE.
         END IF
+
+        DEBUG_INFO = .TRUE
+        WRITE(*,*) 'Parto!'
 
         ALLOCATE(TS(NFLD))
         ! Compute PC statistics.
@@ -240,7 +243,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
     ! from Python as f2py does not support derived types yet.
     !
     !-------------------------------------------------------------------------
-        
+
         IMPLICIT NONE
 
         ! Input variables.
@@ -493,7 +496,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
                 IF (RNORM .LE. R2SEED) THEN
                     COSTF = COSTF + 1.
                 END IF
-                
+
                 R2J = PC(1, JSEED) * PC(1, JSEED) +                          &
                         PC(2, JSEED) * PC(2, JSEED)
 
@@ -512,7 +515,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 
                     DOTP = PC(1, JSEED) * PC(1, KSEED) +                     &
                             PC(2, JSEED) * PC(2, KSEED)
-                    
+
                     R2K = PC(1, KSEED) * PC(1, KSEED) +                      &
                             PC(2, KSEED) * PC(2, KSEED)
 
@@ -545,9 +548,9 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
     ! sub-series.
     !
     !-------------------------------------------------------------------------
-        
+
         IMPLICIT NONE
-        
+
         !Input variables.
         INTEGER, INTENT(IN) :: NT
         REAL,    INTENT(IN) :: AV
@@ -591,7 +594,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 
             J = 0
             DO JD = 1, NDIS
-                
+
                 J = J + 1
 
                 DO J2 = 2, NT2
@@ -625,7 +628,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
     !-------------------------------------------------------------------------
 
         IMPLICIT NONE
-        
+
         ! Input variables.
         INTEGER,             INTENT(IN) :: NT
         REAL, DIMENSION(NT), INTENT(IN) :: TS
@@ -721,7 +724,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             SELF%SEED = MOD(IC + ABS(SELF%SEED), IM)
 
             DO J = 1, ADRNG_STATE_SIZE
-              
+
                 SELF%SEED = MOD(IA * SELF%SEED + IC, IM)
 
                 SELF%STATE(J) = SELF%SEED
@@ -743,7 +746,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         SELF%SEED = MOD(IA * SELF%SEED + IC, IM)
 
         SELF%STATE(J) = SELF%SEED
-         
+
     END FUNCTION ADRNG_UNIFORM
 
 

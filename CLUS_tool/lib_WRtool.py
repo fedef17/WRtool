@@ -1026,6 +1026,7 @@ def clusters_sig(inputs, solver = None, out_clustering = None):
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
     PCunscal = solver.pcs()
     pc=np.transpose(PCunscal)
+    pc = pc[:numpcs,:]
 
     npart=100      #100
     nrsamp=500     #500
@@ -1033,7 +1034,7 @@ def clusters_sig(inputs, solver = None, out_clustering = None):
     if freq=='day':
         ndis=int(PCunscal.shape[0]/(30*len(season)))-1        #28 (e.g. DJF data: ndis=number of winters-1)
     elif freq=='mon':
-        ndis=int(PCunscal.shape[0]/(12*len(season)))-1
+        ndis=int(PCunscal.shape[0]/len(season))-1
     else:
         print('input data frequency is neither day nor mon')
     print('check: number of years={}'.format(ndis+1))

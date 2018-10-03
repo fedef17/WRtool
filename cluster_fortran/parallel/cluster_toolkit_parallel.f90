@@ -154,7 +154,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             DEBUG_INFO = .TRUE.
         END IF
 
-        DEBUG_INFO = .TRUE
+        DEBUG_INFO = .TRUE.
         WRITE(*,*) 'Parto!'
 
         ALLOCATE(TS(NFLD))

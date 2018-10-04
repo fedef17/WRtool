@@ -220,6 +220,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
                 IDX = NCL - 1
                 CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
                         INDCL, CENTR, STAT2, ISEED) !(IDX, JRS)
+                WRITE(*,*) 'pino', VAROPT(IDX), STAT2
                 IF (VAROPT(IDX) .GT. STAT2) THEN
                     SIGNIFICANCE(IDX) = SIGNIFICANCE(IDX) + INCREMENT
                 END IF

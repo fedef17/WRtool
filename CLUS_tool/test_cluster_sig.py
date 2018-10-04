@@ -124,8 +124,7 @@ print(datetime.datetime.now())
 
 solver = lwr.read_out_compute(inputs['OUTPUTdir'], inputs['name_outputs'], inputs['numpcs'])
 
-name_outputs_pcs = inputs['name_outputs']+'_{}pcs'.format(inputs['numpcs'])
-out_clustering = lwr.read_out_clustering(inputs['OUTPUTdir'], name_outputs_pcs, inputs['numpcs'], inputs['numclus'])
+out_clustering = lwr.read_out_clustering(inputs['OUTPUTdir'], inputs['name_outputs'], inputs['numpcs'], inputs['numclus'])
 
 significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
 

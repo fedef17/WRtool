@@ -216,11 +216,12 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             END DO
 
             ! Compute the clusters from the red-noise sample time series.
+            WRITE(*,*) 'piniiiii'
             DO NCL = 2, PSIZE+1
                 IDX = NCL - 1
                 CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
                         INDCL, CENTR, STAT2, ISEED) !(IDX, JRS)
-                WRITE(*,*) 'pino', VAROPT(IDX), STAT2
+                WRITE(*,*) JRS, NCL, VAROPT(IDX), STAT2
                 IF (VAROPT(IDX) .GT. STAT2) THEN
                     SIGNIFICANCE(IDX) = SIGNIFICANCE(IDX) + INCREMENT
                 END IF

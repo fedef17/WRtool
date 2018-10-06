@@ -481,6 +481,8 @@ def clustering(inputs, solver = None, out_precompute = None):
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
     PCunscal = solver.pcs()
     pc=np.transpose(PCunscal)
+    print('pinooooooooooooooooooooooooo',pc.shape)
+    pc = pc[:numpcs, :]
 
     # k-means analysis using the subset of PCs
     #______________________________________

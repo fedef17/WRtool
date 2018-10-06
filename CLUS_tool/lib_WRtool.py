@@ -479,10 +479,9 @@ def clustering(inputs, solver = None, out_precompute = None):
     # LOAD DATA PROCESSED BY compute.py
     if solver is None:
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
-    PCunscal = solver.pcs()
+    PCunscal = solver.pcs()[:,:numpcs]
     pc=np.transpose(PCunscal)
     print('pinooooooooooooooooooooooooo',pc.shape)
-    pc = pc[:numpcs, :]
 
     # k-means analysis using the subset of PCs
     #______________________________________
@@ -659,7 +658,7 @@ def clusters_comparison(inputs, out_precompute = None, solver = None, out_cluste
     # LOAD DATA PROCESSED BY compute.py
     if solver is None:
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
-    PCunscal = solver.pcs()
+    PCunscal = solver.pcs()[:,:numpcs]
     pc=np.transpose(PCunscal)
 
     # LOAD DATA PROCESSED BY clustering.py
@@ -948,7 +947,7 @@ def clusters_plot(inputs, out_precompute = None, solver = None, out_clus_compare
     # LOAD DATA PROCESSED BY compute.py
     if solver is None:
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
-    PCunscal = solver.pcs()
+    PCunscal = solver.pcs()[:,:numpcs]
     pc=np.transpose(PCunscal)
 
     # LOAD DATA PROCESSED BY clusters_comparison.py
@@ -1026,9 +1025,8 @@ def clusters_sig(inputs, solver = None, out_clustering = None):
 
     if solver is None:
         solver = read_out_compute(OUTPUTdir, name_outputs, numpcs)
-    PCunscal = solver.pcs()
+    PCunscal = solver.pcs()[:,:numpcs]
     pc=np.transpose(PCunscal)
-    pc = pc[:numpcs,:]
 
     npart=100      #100
     nrsamp=500     #500

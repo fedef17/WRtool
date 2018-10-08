@@ -131,12 +131,12 @@ if not (os.path.isfile(filesolver) and os.path.isfile(namef)):
         print(namef+' not found\n')
     # Run the analysis on ERA ref
     inputs_era['filenames'] = [inputs['ERA_ref_orig']]
-    inputs_era['OUTPUTdir'] = inputs['dir_OUTPUT']+'ERA_ref/'
+    inputs_era['OUTPUTdir'] = inputs['ERA_ref_folder']
     inputs_era, out_precompute_ref = lwr.precompute(inputs_era)
     solver_ERA = lwr.compute(inputs_era, out_precompute = out_precompute_ref)
     out_clustering_ref = lwr.clustering(inputs_era, solver = solver_ERA, out_precompute = out_precompute_ref)
-
-solver_ERA = pickle.load(open(filesolver, 'rb'))
+else:
+    solver_ERA = pickle.load(open(filesolver, 'rb'))
 
 filesolver = '{}solver_{}_{}pcs.p'.format(inputs['NCEP_ref_folder'], name_NCEP, inputs['numpcs'])
 namef='{}cluspatternORD_{}clus_{}_{}pcs.nc'.format(inputs['NCEP_ref_folder'],inputs['numclus'],name_NCEP,inputs['numpcs'])
@@ -148,12 +148,12 @@ if not (os.path.isfile(filesolver) and os.path.isfile(namef)):
         print(namef+' not found\n')
     # Run the analysis on NCEP ref
     inputs_ncep['filenames'] = [inputs['NCEP_ref_orig']]
-    inputs_ncep['OUTPUTdir'] = inputs['dir_OUTPUT']+'NCEP_ref/'
+    inputs_ncep['OUTPUTdir'] = inputs['NCEP_ref_folder']
     inputs_ncep, out_precompute_ref = lwr.precompute(inputs_ncep)
     solver_NCEP = lwr.compute(inputs_ncep, out_precompute = out_precompute_ref)
     out_clustering_ref = lwr.clustering(inputs_ncep, solver = solver_NCEP, out_precompute = out_precompute_ref)
-
-solver_NCEP = pickle.load(open(filesolver, 'rb'))
+else:
+    solver_NCEP = pickle.load(open(filesolver, 'rb'))
 
 ### RUN THE program
 print('Via!\n')

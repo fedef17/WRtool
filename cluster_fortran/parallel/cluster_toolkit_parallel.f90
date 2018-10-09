@@ -157,7 +157,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         DEBUG_INFO = .TRUE.
         WRITE(*,*) 'Parto!'
 
-        WRITE(*,*) NRSAMP, PSIZE, NPART, NFLD, NPC, NDIS, PC, VAROPT
+        ! WRITE(*,*) NRSAMP, PSIZE, NPART, NFLD, NPC, NDIS, PC, VAROPT
 
         ALLOCATE(TS(NFLD))
         ! Compute PC statistics.
@@ -216,12 +216,12 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             END DO
 
             ! Compute the clusters from the red-noise sample time series.
-            WRITE(*,*) 'piniiiii'
+            ! WRITE(*,*) 'piniiiii'
             DO NCL = 2, PSIZE+1
                 IDX = NCL - 1
                 CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
                         INDCL, CENTR, STAT2, ISEED) !(IDX, JRS)
-                WRITE(*,*) JRS, NCL, VAROPT(IDX), STAT2
+                ! WRITE(*,*) JRS, NCL, VAROPT(IDX), STAT2
                 IF (VAROPT(IDX) .GT. STAT2) THEN
                     SIGNIFICANCE(IDX) = SIGNIFICANCE(IDX) + INCREMENT
                 END IF
@@ -234,6 +234,184 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 !-----------------------------------------------------------------------------
 
     END SUBROUTINE CLUS_SIG_P
+
+
+!*****************************************************************************
+    SUBROUTINE CLUS_SIG_P_NCL (NRSAMP, NCL, NPART, NFLD, NPC, NDIS, PC,        &
+            VAROPT, SIGNIFICANCE)
+    !-------------------------------------------------------------------------
+    ! Compute the significance of clusters as a percentage.
+    !
+    ! The percentage significance represents the percentage of red-noise
+    ! samples whose optimal variance ratio is less than that given.
+    !
+    ! It is assumes that the number of variance ratios passed in is the
+    ! number of partitions to try and that the first partition is the k=2
+    ! partition and so on e.g., if there are 5 variance ratios it is assumed
+    ! that the first is for the 2-cluster and the last for the 6-cluster.
+    !
+    ! Arguments:
+    ! NRSAMP          input [INTEGER]
+    !                 Number of red-noise samples to produce.
+    ! NCL           input [INTEGER]
+    !                 The number of clusters.
+    ! NPART           input [INTEGER]
+    !                 The number of attempts used when determining the
+    !                 optimal partition.
+    ! NFLD            input [INTEGER] {f2py implied}
+    !                 Number of fields in the PCS (length of the PC time
+    !                 series).
+    ! NPC             input [INTEGER] {f2py implied}
+    !                 Number of PCs used to compute clusters.
+    ! NDIS            input [INTEGER]
+    !                 Number of discontinuities in the PC time series. It is
+    !                 assumed that these discontinuities equally divide the
+    !                 time series.
+    ! VAROPT          input [REAL(PSIZE)]
+    !                 Variance ratios to test for significance.
+    ! SIGNIFICANCE    output [REAL(PSIZE)]
+    !                 Percentage significance of each variance ratio.
+    !
+    !------------------------------------------------------------------------
+
+        USE OMP_LIB
+        IMPLICIT NONE
+
+        ! Input arguments.
+        INTEGER,                    INTENT(IN) :: NRSAMP
+        INTEGER,                    INTENT(IN) :: NCL
+        INTEGER,                    INTENT(IN) :: NPART
+        INTEGER,                    INTENT(IN) :: NFLD
+        INTEGER,                    INTENT(IN) :: NPC
+        INTEGER,                    INTENT(IN) :: NDIS
+        REAL, DIMENSION(NPC, NFLD), INTENT(IN) :: PC
+        REAL,                       INTENT(IN) :: VAROPT
+
+        ! Declarations recognized by f2py.
+        !f2py intent(hide) NFLD
+        !f2py intent(hide) NPC
+
+        ! Output variables.
+        REAL, DIMENSION, INTENT(OUT) :: SIGNIFICANCE
+
+        ! Local variables.
+        INTEGER                            :: JRS, JPC, NCL, NREM, IDX, NFLD1
+        INTEGER, DIMENSION(NCL)            :: NFCL
+        INTEGER, DIMENSION(NFLD)           :: INDCL
+        INTEGER, DIMENSION(NCL, NPART) :: ISEED
+
+        REAL                           :: TSM, INCREMENT
+        REAL, DIMENSION(:), ALLOCATABLE:: TS
+        REAL, DIMENSION(NPC)           :: PCSD, PCAC, PCM
+        REAL :: STAT2
+        REAL, DIMENSION(NPC, NFLD)     :: DPC
+        REAL, DIMENSION(NPC, NCL)  :: CENTR
+
+        ! Array of random number generators.
+        TYPE(ADRNG_T), DIMENSION(NRSAMP) :: RNGS
+        !TYPE(RNG_T), DIMENSION(NRSAMP) :: RNGS
+
+        ! Debugging.
+        CHARACTER(LEN=15) :: DEBUG_ENV_NAME = "CTP_DEBUG_LEVEL"
+        CHARACTER(LEN=3)  :: DEBUG_ENV_VALUE
+        INTEGER           :: DEBUG_ENV_STATUS
+        LOGICAL           :: DEBUG_INFO
+
+        ! OpenMP variables.
+        INTEGER, PARAMETER :: CHUNKSIZE = 10
+        INTEGER :: CHUNK
+        INTEGER :: TID, NTHREADS
+        CHUNK = CHUNKSIZE
+
+        ! Turn debugging on or off.
+        CALL GET_ENVIRONMENT_VARIABLE (DEBUG_ENV_NAME, VALUE=DEBUG_ENV_VALUE,&
+                STATUS=DEBUG_ENV_STATUS)
+        IF (DEBUG_ENV_STATUS .NE. 0) THEN
+            DEBUG_ENV_VALUE = "0"
+        END IF
+        IF (DEBUG_ENV_VALUE .EQ. "0") THEN
+            DEBUG_INFO = .FALSE.
+        ELSE
+            DEBUG_INFO = .TRUE.
+        END IF
+
+        DEBUG_INFO = .TRUE.
+        WRITE(*,*) 'Parto!'
+
+        ! WRITE(*,*) NRSAMP, NCL, NPART, NFLD, NPC, NDIS, PC, VAROPT
+
+        ALLOCATE(TS(NFLD))
+        ! Compute PC statistics.
+        DO JPC = 1, NPC
+            TS(1:NFLD) = PC(JPC, 1:NFLD)
+            CALL TSSTAT_P (TS, NFLD, NDIS, PCM(JPC), PCSD(JPC), PCAC(JPC))
+        END DO
+
+        ! Determine if the length of the PC time series is odd or even so
+        ! this can be accounted for when constructing red-noise dummy PCs.
+        NREM = MOD(NFLD, 2)
+        NFLD1 = NFLD + NREM
+        DEALLOCATE(TS)
+        ALLOCATE(TS(NFLD1))
+
+        INCREMENT    = 100. / REAL(MAX(1, NRSAMP))
+        SIGNIFICANCE = 0.
+
+!----------------------------------------------------------------------------
+! Parallel region.
+        !$OMP PARALLEL                                                        &
+        !$OMP PRIVATE(TID, JRS, JPC, NCL, TS, TSM, DPC, STAT2, IDX, ISEED, INDCL, CENTR,NFCL) &
+        !$OMP SHARED(NTHREADS, RNGS, NREM, NPART, NFLD, PCSD, PCAC, NDIS, NPC, SIGNIFICANCE)
+        TID = OMP_GET_THREAD_NUM()
+        IF (TID .EQ. 0) THEN
+            NTHREADS = OMP_GET_NUM_THREADS()
+            IF (DEBUG_INFO) THEN
+                WRITE (*, '("PARALLEL WITH ", I2, " THREADS")') NTHREADS
+            END IF
+        END IF
+
+        !$OMP DO SCHEDULE(DYNAMIC, CHUNK)
+
+        ! Loop over the requested number of samples, creating red-noise
+        ! time series and performing the cluster analysis on them to
+        ! obtain the optimal variance ratio for each.
+        DO JRS = 1, NRSAMP
+
+            IF (DEBUG_INFO) THEN
+                WRITE (*, '("F90: COMPUTING SAMPLE ", I4)') JRS
+            END IF
+
+            ! Seed the random number generator.
+            RNGS(JRS)%SEED = -11111 + JRS
+            !RNGS(JRS)%SEED = -1111 *  JRS
+            !CALL RNG_SEED (RNGS(JRS), 932117 + JRS)
+            !CALL RNG_SEED (RNGS(JRS), -11111 + JRS)
+            !CALL RNG_SEED (RNGS(JRS), -1111 * JRS)
+
+            ! Compute red-noise PC time series.
+            DO JPC = 1, NPC
+                CALL GAUSTS_P (RNGS(JRS), NFLD1, 0., PCSD(JPC), PCAC(JPC),   &
+                        NDIS, TS)
+                TSM = SUM(TS(1:NFLD)) / REAL(NFLD)
+                DPC(JPC, :) = TS(1:NFLD) - TSM
+            END DO
+
+            ! Compute the clusters from the red-noise sample time series.
+            ! WRITE(*,*) 'piniiiii'
+            CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
+                    INDCL, CENTR, STAT2, ISEED) 
+            ! WRITE(*,*) JRS, NCL, VAROPT, STAT2
+            IF (VAROPT .GT. STAT2) THEN
+                SIGNIFICANCE = SIGNIFICANCE + INCREMENT
+            END IF
+        END DO
+        !$OMP END DO NOWAIT
+
+        !$OMP END PARALLEL
+! End of parallel region.
+!-----------------------------------------------------------------------------
+
+    END SUBROUTINE CLUS_SIG_P_NCL
 
 
 !*****************************************************************************

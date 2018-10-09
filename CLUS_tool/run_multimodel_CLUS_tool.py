@@ -169,7 +169,7 @@ if n_runs == 1:
     if inputs['check_sig']:
         significance = lwr.clusters_sig(inputs, solver = solver, out_clustering = out_clustering)
 else:
-    final_results = []
+    final_results = dict()
     for nu, fil, tag, mod in zip(range(n_runs), filenames_run, tags_run, models_run):
         inputs['filenames'] = [fil]
         inputs['exp_name'] = tag

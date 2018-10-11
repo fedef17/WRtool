@@ -360,8 +360,8 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 !----------------------------------------------------------------------------
 ! Parallel region.
         !$OMP PARALLEL                                                        &
-        !$OMP PRIVATE(TID, JRS, JPC, NCL, TS, TSM, DPC, STAT2, IDX, ISEED, INDCL, CENTR,NFCL) &
-        !$OMP SHARED(NTHREADS, RNGS, NREM, NPART, NFLD, PCSD, PCAC, NDIS, NPC, SIGNIFICANCE)
+        !$OMP PRIVATE(TID, JRS, JPC, TS, TSM, DPC, STAT2, IDX, ISEED, INDCL, CENTR, NFCL) &
+        !$OMP SHARED(NTHREADS, RNGS, NREM, NCL, NPART, NFLD, PCSD, PCAC, NDIS, NPC, SIGNIFICANCE)
         TID = OMP_GET_THREAD_NUM()
         IF (TID .EQ. 0) THEN
             NTHREADS = OMP_GET_NUM_THREADS()

@@ -387,7 +387,6 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             !CALL RNG_SEED (RNGS(JRS), 932117 + JRS)
             !CALL RNG_SEED (RNGS(JRS), -11111 + JRS)
             !CALL RNG_SEED (RNGS(JRS), -1111 * JRS)
-            WRITE(*,*) 'inizio', JRS
 
             ! Compute red-noise PC time series.
             DO JPC = 1, NPC
@@ -396,7 +395,6 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
                 TSM = SUM(TS(1:NFLD)) / REAL(NFLD)
                 DPC(JPC, :) = TS(1:NFLD) - TSM
             END DO
-            WRITE(*,*) 'mezzo', JRS
 
             ! Compute the clusters from the red-noise sample time series.
             ! WRITE(*,*) 'piniiiii'
@@ -406,16 +404,15 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             IF (VAROPT .GT. STAT2) THEN
                 SIGNIFICANCE = SIGNIFICANCE + INCREMENT
             END IF
-            WRITE(*,*) 'chiudo', JRS, SIGNIFICANCE
+            !WRITE(*,*) 'chiudo', JRS, SIGNIFICANCE
         END DO
         !$OMP END DO NOWAIT
 
-        WRITE(*,*) 'chiusitutti'
         !$OMP END PARALLEL
 ! End of parallel region.
 !-----------------------------------------------------------------------------
 
-    WRITE(*,*) 'ritorno o non ritorno?'
+    !WRITE(*,*) 'ritorno o non ritorno?'
 
     END SUBROUTINE CLUS_SIG_P_NCL
 

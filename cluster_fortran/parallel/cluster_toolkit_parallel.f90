@@ -406,10 +406,11 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             IF (VAROPT .GT. STAT2) THEN
                 SIGNIFICANCE = SIGNIFICANCE + INCREMENT
             END IF
-            WRITE(*,*) 'chiudo', JRS
+            WRITE(*,*) 'chiudo', JRS, SIGNIFICANCE
         END DO
         !$OMP END DO NOWAIT
 
+        WRITE(*,*) 'chiusitutti'
         !$OMP END PARALLEL
 ! End of parallel region.
 !-----------------------------------------------------------------------------

@@ -335,7 +335,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             DEBUG_INFO = .TRUE.
         END IF
 
-        DEBUG_INFO = .TRUE.
+        !DEBUG_INFO = .TRUE.
         WRITE(*,*) 'Parto!'
 
         ! WRITE(*,*) NRSAMP, NCL, NPART, NFLD, NPC, NDIS, PC, VAROPT

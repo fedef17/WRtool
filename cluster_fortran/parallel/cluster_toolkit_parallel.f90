@@ -292,10 +292,10 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         !f2py intent(hide) NPC
 
         ! Output variables.
-        REAL, DIMENSION, INTENT(OUT) :: SIGNIFICANCE
+        REAL, INTENT(OUT) :: SIGNIFICANCE
 
         ! Local variables.
-        INTEGER                            :: JRS, JPC, NCL, NREM, IDX, NFLD1
+        INTEGER                            :: JRS, JPC, NREM, IDX, NFLD1
         INTEGER, DIMENSION(NCL)            :: NFCL
         INTEGER, DIMENSION(NFLD)           :: INDCL
         INTEGER, DIMENSION(NCL, NPART) :: ISEED
@@ -399,7 +399,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             ! Compute the clusters from the red-noise sample time series.
             ! WRITE(*,*) 'piniiiii'
             CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
-                    INDCL, CENTR, STAT2, ISEED) 
+                    INDCL, CENTR, STAT2, ISEED)
             ! WRITE(*,*) JRS, NCL, VAROPT, STAT2
             IF (VAROPT .GT. STAT2) THEN
                 SIGNIFICANCE = SIGNIFICANCE + INCREMENT

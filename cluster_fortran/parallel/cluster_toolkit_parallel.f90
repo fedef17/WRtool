@@ -415,6 +415,8 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
 ! End of parallel region.
 !-----------------------------------------------------------------------------
 
+    WRITE(*,*) 'ritorno o non ritorno?'
+
     END SUBROUTINE CLUS_SIG_P_NCL
 
 

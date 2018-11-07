@@ -157,7 +157,7 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
         DEBUG_INFO = .TRUE.
         WRITE(*,*) 'Parto!'
 
-        ! WRITE(*,*) NRSAMP, PSIZE, NPART, NFLD, NPC, NDIS, PC, VAROPT
+        !WRITE(*,*) NRSAMP, PSIZE, NPART, NFLD, NPC, NDIS, PC, VAROPT
 
         ALLOCATE(TS(NFLD))
         ! Compute PC statistics.
@@ -400,11 +400,11 @@ MODULE CLUSTER_TOOLKIT_PARALLEL
             ! WRITE(*,*) 'piniiiii'
             CALL CLUS_OPT_P (RNGS(JRS), NFLD, NPC, NCL, NPART, DPC, NFCL,&
                     INDCL, CENTR, STAT2, ISEED)
-            WRITE(*,*) JRS, NCL, VAROPT, STAT2
+            !WRITE(*,*) JRS, NCL, VAROPT, STAT2
             IF (VAROPT .GT. STAT2) THEN
                 SIGNIFICANCE = SIGNIFICANCE + INCREMENT
             END IF
-            WRITE(*,*) 'chiudo', JRS, SIGNIFICANCE
+            !WRITE(*,*) 'chiudo', JRS, SIGNIFICANCE
         END DO
         !$OMP END DO NOWAIT
 

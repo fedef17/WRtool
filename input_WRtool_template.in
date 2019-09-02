@@ -1,0 +1,130 @@
+Input file for run_CLUS_tool.py.
+
+IMPORTANT NOTE: the value of the keys has to be written in the line that immediately follows the [key] label. If you don't want to set a key, comment it with a '#': #[key]. Commented lines are not considered.
+
+##################################################################
+##################### REQUIRED INPUT PATHS/NAMES (have to be set!) #################
+
+# Name of the run
+[exp_name]
+plasim_TESTpy3_indip
+
+# Directory of input files
+[cart_in]
+/data-hobbes/fabiano/plasim_lembo/
+
+# Output data directory
+[cart_out_general]
+/home/fabiano/Research/lavori/WeatherRegimes/
+
+# List of input files. If more than one file, list them in the same line, separated by commas.
+[filenames]
+gph500_sppt_100.nc, gph500_sppt_200.nc, gph500_nosppt_100.nc, gph500_nosppt_200.nc
+
+# Name of the dataset
+[model_names]
+stoc1, stoc2, base1, base2
+
+# Select year range (two values separated by comma)
+#[year_range]
+1957, 2015
+
+###################
+#### Group options. For meaningful visualization
+########
+
+# Define a dictionary to group models in different categories. A comparison between the two groups will be done.
+[groups]
+base : base1, base2
+stoc : stoc1, stoc2
+
+# How should I compare groups? Possibilities: 'group': visually groups the groups and computes the mean and stddev of the group, '1vs1' compares each element of a group with the corresponding elements of the other groups.
+[group_compare_style]
+group
+
+# Specify group symbols (for scatter plots).
+[group_symbols]
+base : $D$
+stoc : $S$
+
+# Specify reference group (differences are shown wrt this group):
+[reference_group]
+base
+
+##########################################################################
+##############  reference FILES  ################
+
+# Compare with ERA?
+[run_compare]
+True
+
+# Use reference EOFS?
+[use_reference_eofs]
+False
+
+# ERA reference file (used to compare the cluster patterns).
+# The program checks for existing EOF solver and clusters in ERA_ref_folder.
+
+# Name to be assigned to the observations.
+[obs_name]
+ERA
+
+[ERA_ref_orig]
+/data-hobbes/fabiano/plasim_lembo/ERA_remap_1957-2018.nc
+
+[ERA_ref_folder]
+ERA_ref_resPlasim
+
+##########################################################################
+##############  options for EOFs/CLUSTERING  ################
+
+# Number of EOFs to be used in the decomposition:
+[numpcs]
+4
+
+# Consider percentage of explained variance (perc)?
+[flag_perc]
+False
+
+# Percentage of variance explained by the EOFs:
+[perc]
+80
+
+# Number of clusters to be used:
+[numclus]
+4
+
+# Calculate significance of clustering (run cluster_sig)
+[run_sig_calc]
+True
+
+# Save heavy output? (global anomalies, transitions, solver, ...)
+[heavy_output]
+False
+
+##########################################################################
+##############  options for PRECOMPUTE -- preprocessing  ################
+
+# Atmospheric level at which the variable is extracted (if more levels are present)
+[level]
+500
+
+# Season to be selected (options: JJA, DJF, DJFM, NDJFM, ...)
+[season]
+DJFM
+
+# Regional average ('EAT': Euro-Atlantic, 'PNA': Pacific North American, 'NH': Northern Hemisphere)
+# Area to be selected (options: EAT, PNA, NH)
+[area]
+EAT
+
+##########################################################################
+###################  other options  ###################
+
+# Pattern NAMES
+[patnames]
+NAO +, Sc. Blocking, Atl. Ridge, NAO -
+
+# Pattern tags
+[patnames_short]
+NP, BL, AR, NN

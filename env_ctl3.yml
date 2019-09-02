@@ -1,0 +1,32 @@
+name: ctl3
+channels:
+- uvcdat
+- scitools
+- conda-forge
+- defaults
+dependencies:
+- netcdf4
+- backports_abc
+- cartopy
+- eofs
+- gst-plugins-base
+- gstreamer
+- matplotlib
+- numpy
+- pandas
+- pyqt
+- ipython
+- python-dateutil
+- qt
+- scikit-learn
+- scipy
+- setuptools
+- tk
+- libgcc
+- libgfortran
+- iris
+- spyder
+- cdo
+- seaborn
+- xarray
+- numba

@@ -40,6 +40,7 @@ The input file is structured in four main sections:
     - specify input/output directories;
     - a list of input files and their names. To specify the input files, you may either list them inline under the key [filenames] or write them one per line in an external file indicated by [filelist];
     - the reference (observed) geopotential field to compare with.
+
 **All the inputs in this section are mandatory: the tool won't work properly without.**
 
 2) Options to set:

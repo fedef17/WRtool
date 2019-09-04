@@ -125,7 +125,7 @@ NP, BL, AR, NN
 
 # Calculate significance of clustering (run cluster_sig)
 [run_sig_calc]
-True
+False
 
 ##### Advanced options #####
 
@@ -176,6 +176,14 @@ Nstereo
 # Margins of the plot for visualization 'standard'. If no margins are specified, the whole globe is showed.
 #[plot_margins]
 -20, 90, 20, 70
+
+# Central longitude (for all global plots)
+[central_lon]
+0
+
+# Central latitude (for Orthographic plots)
+[central_lat]
+70
 
 # Draw rectangle around area considered for calculation
 [draw_rectangle_area]

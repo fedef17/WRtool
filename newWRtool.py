@@ -71,9 +71,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -108,6 +108,10 @@ defaults['color_palette'] = 'hls'
 defaults['netcdf4_read'] = False
 defaults['wnd_days'] = 20
 defaults['wnd_years'] = 30
+defaults['show_transitions'] = False
+defaults['central_lat'] = 70
+defaults['central_lon'] = 0
+
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -200,6 +204,9 @@ if inputs['is_ensemble']:
 print('filenames: ', inputs['filenames'])
 print('model names: ', inputs['model_names'])
 
+if not inputs['run_compare'] and len(inputs['model_names']) > 1:
+    raise ValueError('Multiple models selected. Set a reference file for the observations and set run_compare to True\n')
+
 print(inputs['groups'])
 if inputs['group_symbols'] is not None:
     for k in inputs['group_symbols']:
@@ -251,18 +258,36 @@ if inputs['plot_margins'] is not None:
 outname = 'out_' + std_outname(inputs['exp_name'], inputs) + '.p'
 nomeout = inputs['cart_out'] + outname
 
-ERA_ref_out = inputs['cart_out_general'] + inputs['ERA_ref_folder'] + 'out_' + std_outname(inputs['obs_name'], inputs, ref_name = True) + '.p'
-if not os.path.exists(inputs['cart_out_general'] + inputs['ERA_ref_folder']):
-    os.mkdir(inputs['cart_out_general'] + inputs['ERA_ref_folder'])
+if inputs['run_compare']:
+    ERA_ref_out = inputs['cart_out_general'] + inputs['ERA_ref_folder'] + 'out_' + std_outname(inputs['obs_name'], inputs, ref_name = True) + '.p'
+    if not os.path.exists(inputs['cart_out_general'] + inputs['ERA_ref_folder']):
+        os.mkdir(inputs['cart_out_general'] + inputs['ERA_ref_folder'])
 
 if not os.path.exists(nomeout):
     print('{} not found, this is the first run. Setting up the computation..\n'.format(nomeout))
-    if not os.path.exists(ERA_ref_out):
-        ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
-        pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
+
+    if inputs['run_compare']:
+        if not os.path.exists(ERA_ref_out):
+            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
+            pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
+        else:
+            print('Reference calculation already performed, reading from {}\n'.format(ERA_ref_out))
+            ERA_ref = pickle.load(open(ERA_ref_out, 'rb'))
+
+        ref_solver = ERA_ref['solver']
+        ref_patterns_area = ERA_ref['cluspattern_area']
+        ref_clusters_centers = ERA_ref['centroids']
     else:
-        print('Reference calculation already performed, reading from {}\n'.format(ERA_ref_out))
-        ERA_ref = pickle.load(open(ERA_ref_out, 'rb'))
+        ERA_ref = None
+        ref_solver = None
+        ref_patterns_area = None
+        ref_clusters_centers = None
+        if inputs['use_reference_eofs']:
+            print('No comparison with observations. Setting use_reference_eofs to False.\n')
+            inputs['use_reference_eofs'] = False
+        if inputs['use_reference_clusters']:
+            print('No comparison with observations. Setting use_reference_clusters to False.\n')
+            inputs['use_reference_clusters'] = False
 
     model_outs = dict()
     for modfile, modname in zip(inputs['filenames'], inputs['model_names']):
@@ -271,7 +296,7 @@ if not os.path.exists(nomeout):
         else:
             filin = inputs['ensemble_filenames'][modname]
 
-        model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ERA_ref['solver'], ref_patterns_area = ERA_ref['cluspattern_area'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ERA_ref['centroids'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
+        model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
         # else:
         #     model_outs[modname] = cd.WRtool_from_file(inputs['ensemble_filenames'][modname], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ERA_ref['solver'], ref_patterns_area = ERA_ref['cluspattern_area'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ERA_ref['centroids'], netcdf4_read = inputs['netcdf4_read'])
 
@@ -287,12 +312,14 @@ else:
 
 os.system('cp {} {}'.format(file_input, inputs['cart_out'] + std_outname(inputs['exp_name'], inputs) + '.in'))
 
-latc = np.mean(ERA_ref['lat_area'])
-lonc = np.mean(ERA_ref['lon_area'])
-clatlo = (latc, lonc)
+mod_out = model_outs[inputs['model_names'][0]]
+if inputs['central_lon'] is None:
+    inputs['central_lon'] = np.mean(mod_out['lon_area'])
+if inputs['central_lat'] is None:
+    inputs['central_lat'] = np.mean(mod_out['lat_area'])
+print('Central lat, lon: {}, {}\n'.format(inputs['central_lat'], inputs['central_lon']))
 
 n_models = len(model_outs.keys())
-
 
 file_res = inputs['cart_out'] + 'results_' + std_outname(inputs['exp_name'], inputs) + '.dat'
 cd.out_WRtool_mainres(file_res, model_outs, ERA_ref, inputs)
@@ -305,7 +332,10 @@ if inputs['draw_rectangle_area']:
         arearect = ctl.sel_area_translate(inputs['area'])
 
 if inputs['out_figures']:
-    cd.plot_WRtool_results(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), n_models, model_outs, ERA_ref, model_names = inputs['model_names'], obs_name = inputs['obs_name'], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = clatlo, groups = inputs['groups'], group_symbols = inputs['group_symbols'], reference_group = inputs['reference_group'], visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], out_only_main_figs = inputs['out_only_main_figs'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'])#, custom_model_colors = ['indianred', 'forestgreen', 'black'], compare_models = [('stoc', 'base')])
+    if inputs['run_compare']:
+        cd.plot_WRtool_results(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), n_models, model_outs, ERA_ref, model_names = inputs['model_names'], obs_name = inputs['obs_name'], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), groups = inputs['groups'], group_symbols = inputs['group_symbols'], reference_group = inputs['reference_group'], visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], out_only_main_figs = inputs['out_only_main_figs'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'])#, custom_model_colors = ['indianred', 'forestgreen', 'black'], compare_models = [('stoc', 'base')])
+    else:
+        cd.plot_WRtool_singlemodel(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), mod_out, model_name = inputs['model_names'][0], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'])
 
 if inputs['out_netcdf']:
     cart_out_nc = inputs['cart_out'] + 'outnc_' + std_outname(inputs['exp_name'], inputs) + '/'

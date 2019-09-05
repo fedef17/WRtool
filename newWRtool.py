@@ -109,8 +109,6 @@ defaults['netcdf4_read'] = False
 defaults['wnd_days'] = 20
 defaults['wnd_years'] = 30
 defaults['show_transitions'] = False
-defaults['central_lat'] = 70
-defaults['central_lon'] = 0
 
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)

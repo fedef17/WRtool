@@ -66,5 +66,6 @@ conda activate ctl3
 python newWRtool.py /path/to/myinputfile.in &
 ```
 
+The path of the input file can be both the absolute or the relative path from the running directory.
 The code will automatically create a log file and copy it to the output folder specified in the input file.
 If the tool stops for some reason you will find the log file in the run folder instead.

@@ -71,9 +71,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -109,6 +109,7 @@ defaults['netcdf4_read'] = False
 defaults['wnd_days'] = 20
 defaults['wnd_years'] = 30
 defaults['show_transitions'] = False
+defaults['draw_grid'] = True
 
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
@@ -310,9 +311,23 @@ else:
 
 os.system('cp {} {}'.format(file_input, inputs['cart_out'] + std_outname(inputs['exp_name'], inputs) + '.in'))
 
+if inputs['area'] == 'custom':
+    arearect = inputs['custom_area']
+else:
+    arearect = ctl.sel_area_translate(inputs['area'])
+arearect[0] = ctl.convert_lon_std(arearect[0])
+arearect[1] = ctl.convert_lon_std(arearect[1])
+
 mod_out = model_outs[inputs['model_names'][0]]
 if inputs['central_lon'] is None:
-    inputs['central_lon'] = np.mean(mod_out['lon_area'])
+    lonW, lonE, latS, latN = arearect
+    if lonW < lonE:
+        inputs['central_lon'] = (lonW+lonE)/2
+    else:
+        inputs['central_lon'] = ctl.convert_lon_std((lonW + lonE + 360)/2)
+    # print(mod_out['lon_area'])
+    # print(np.mean(mod_out['lon_area']))
+    # inputs['central_lon'] = np.mean(mod_out['lon_area'])
 if inputs['central_lat'] is None:
     inputs['central_lat'] = np.mean(mod_out['lat_area'])
 print('Central lat, lon: {}, {}\n'.format(inputs['central_lat'], inputs['central_lon']))
@@ -322,18 +337,13 @@ n_models = len(model_outs.keys())
 file_res = inputs['cart_out'] + 'results_' + std_outname(inputs['exp_name'], inputs) + '.dat'
 cd.out_WRtool_mainres(file_res, model_outs, ERA_ref, inputs)
 
-arearect = None
-if inputs['draw_rectangle_area']:
-    if inputs['area'] == 'custom':
-        arearect = inputs['custom_area']
-    else:
-        arearect = ctl.sel_area_translate(inputs['area'])
+if not inputs['draw_rectangle_area']: arearect = None
 
 if inputs['out_figures']:
     if inputs['run_compare']:
-        cd.plot_WRtool_results(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), n_models, model_outs, ERA_ref, model_names = inputs['model_names'], obs_name = inputs['obs_name'], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), groups = inputs['groups'], group_symbols = inputs['group_symbols'], reference_group = inputs['reference_group'], visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], out_only_main_figs = inputs['out_only_main_figs'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'])#, custom_model_colors = ['indianred', 'forestgreen', 'black'], compare_models = [('stoc', 'base')])
+        cd.plot_WRtool_results(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), n_models, model_outs, ERA_ref, model_names = inputs['model_names'], obs_name = inputs['obs_name'], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), groups = inputs['groups'], group_symbols = inputs['group_symbols'], reference_group = inputs['reference_group'], visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], out_only_main_figs = inputs['out_only_main_figs'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'], draw_grid = inputs['draw_grid'])#, custom_model_colors = ['indianred', 'forestgreen', 'black'], compare_models = [('stoc', 'base')])
     else:
-        cd.plot_WRtool_singlemodel(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), mod_out, model_name = inputs['model_names'][0], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'])
+        cd.plot_WRtool_singlemodel(inputs['cart_out'], std_outname(inputs['exp_name'], inputs), mod_out, model_name = inputs['model_names'][0], patnames = inputs['patnames'], patnames_short = inputs['patnames_short'], central_lat_lon = (inputs['central_lat'], inputs['central_lon']), visualization = inputs['visualization'], bounding_lat = inputs['bounding_lat'], plot_margins = inputs['plot_margins'], draw_rectangle_area = arearect, taylor_mark_dim = inputs['taylor_mark_dim'], use_seaborn = inputs['use_seaborn'], color_palette = inputs['color_palette'], show_transitions = inputs['show_transitions'], draw_grid = inputs['draw_grid'])
 
 if inputs['out_netcdf']:
     cart_out_nc = inputs['cart_out'] + 'outnc_' + std_outname(inputs['exp_name'], inputs) + '/'

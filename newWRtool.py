@@ -24,7 +24,23 @@ plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 
 def std_outname(tag, inputs, ref_name = False):
-    name_outputs = '{}_{}_{}_{}clus'.format(tag, inputs['season'], inputs['area'], inputs['numclus'])
+    if inputs['area'] != 'custom':
+        name_outputs = '{}_{}_{}_{}clus'.format(tag, inputs['season'], inputs['area'], inputs['numclus'])
+    else:
+        lonW, lonE, latS, latN = inputs['custom_area']
+        areatag = ''
+        for cos in [ctl.convert_lon_std(lonW), ctl.convert_lon_std(lonE)]:
+            if cos > 0:
+                areatag += str(int(abs(cos))) + 'E'
+            else:
+                areatag += str(int(abs(cos))) + 'W'
+        for cos in [latS, latN]:
+            if cos > 0:
+                areatag += str(int(abs(cos))) + 'N'
+            else:
+                areatag += str(int(abs(cos))) + 'S'
+
+        name_outputs = '{}_{}_{}_{}clus'.format(tag, inputs['season'], areatag, inputs['numclus'])
 
     if inputs['flag_perc']:
         name_outputs += '_{}perc'.format(inputs['perc'])
@@ -266,7 +282,7 @@ if not os.path.exists(nomeout):
     print('{} not found, this is the first run. Setting up the computation..\n'.format(nomeout))
 
     if inputs['run_compare']:
-        if not os.path.exists(ERA_ref_out):
+        if (not os.path.exists(ERA_ref_out)) or (inputs['year_range'] is None):
             ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
             pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
         else:

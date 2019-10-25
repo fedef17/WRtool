@@ -28,6 +28,10 @@ prova_01
 [filenames]
 gph500_sppt_100.nc, gph500_sppt_200.nc, gph500_nosppt_100.nc, gph500_nosppt_200.nc
 
+# Use CMIP6 naming convention (e.g. zg_day_MODEL_hist-1950_MEMBER_...); models are tagged MODEL_MEMBER. If set to True, key [filenames] is ignored.
+[cmip6_naming]
+False
+
 # Name of the dataset (one entry per each input file)
 [model_names]
 stoc1, stoc2, base1, base2
@@ -144,6 +148,14 @@ False
 # Number of years for calculating the detrended climatology. Default is 30.
 [wnd_years]
 30
+
+# Bad matching rule, one among: 'rms_mean', 'patcor_mean', 'rms_hierarchy', 'patcor_hierarchy'
+[bad_matching_rule]
+rms_mean
+
+# Matching hierarchy. Match clusters in this order. Used only if bad_matching_rule is set to rms_hierarchy or patcor_hierarchy.
+[matching_hierarchy]
+0, 1, 2, 3
 
 ##########################################################################
 ##########################################################################

@@ -87,9 +87,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -126,6 +126,7 @@ defaults['wnd_days'] = 20
 defaults['wnd_years'] = 30
 defaults['show_transitions'] = False
 defaults['draw_grid'] = True
+defaults['cmip6_naming'] = False
 
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
@@ -158,8 +159,19 @@ if len(inputs['filenames']) == 0:
     raise ValueError('No filenames specified. Set either [filenames] or [filelist].')
 
 if inputs['model_names'] is None:
-    n_mod = len(inputs['filenames'])
-    inputs['model_names'] = ['ens_{}'.format(i) for i in range(n_mod)]
+    if inputs['cmip6_naming']:
+        print('Getting the model names from filenames using CMIP6 convention..\n')
+        inputs['model_names'] = []
+        for fi in inputs['filenames']:
+            cose = fi.split('_')
+            model = cose[2]
+            member = cose[4]
+            print('{} -> {} {}\n'.format(fi, model, member))
+            inputs['model_names'].append(model + '_' + member)
+    else:
+        print('No filenames found, giving standard names...\n')
+        n_mod = len(inputs['filenames'])
+        inputs['model_names'] = ['ens_{}'.format(i) for i in range(n_mod)]
 
 if inputs['is_ensemble']:
     print('This is an ensemble run, finding all files.. \n')

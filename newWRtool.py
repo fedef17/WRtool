@@ -47,16 +47,23 @@ def std_outname(tag, inputs, ref_name = False):
     else:
         name_outputs += '_{}pcs'.format(inputs['numpcs'])
 
-    if inputs['year_range'] is not None:
-        name_outputs += '_{}-{}'.format(inputs['year_range'][0], inputs['year_range'][1])
-    else:
-        name_outputs += '_allyrs'
 
     if not ref_name:
+        if inputs['year_range'] is not None:
+            name_outputs += '_{}-{}'.format(inputs['year_range'][0], inputs['year_range'][1])
+        else:
+            name_outputs += '_allyrs'
+
         if inputs['use_reference_clusters']:
             name_outputs += '_refCLUS'
         elif inputs['use_reference_eofs']:
             name_outputs += '_refEOF'
+    else:
+        if inputs['ref_year_range'] is not None:
+            name_outputs += '_{}-{}'.format(inputs['ref_year_range'][0], inputs['ref_year_range'][1])
+        else:
+            name_outputs += '_allyrs'
+
 
     if inputs['detrended_anom_for_clustering']:
         name_outputs += '_dtr'
@@ -87,9 +94,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list, list]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -263,6 +270,10 @@ if not os.path.exists(inputs['cart_out']): os.mkdir(inputs['cart_out'])
 
 if inputs['year_range'] is not None:
     inputs['year_range'] = list(map(int, inputs['year_range']))
+
+if inputs['ref_year_range'] is not None:
+    inputs['ref_year_range'] = list(map(int, inputs['ref_year_range']))
+
 # dictgrp = dict()
 # dictgrp['all'] = inputs['dictgroup']
 # inputs['dictgroup'] = dictgrp
@@ -292,6 +303,9 @@ if inputs['plot_margins'] is not None:
 outname = 'out_' + std_outname(inputs['exp_name'], inputs) + '.p'
 nomeout = inputs['cart_out'] + outname
 
+if inputs['ref_year_range'] is None:
+    inputs['ref_year_range'] = inputs['year_range']
+
 if inputs['run_compare']:
     ERA_ref_out = inputs['cart_out_general'] + inputs['ERA_ref_folder'] + 'out_' + std_outname(inputs['obs_name'], inputs, ref_name = True) + '.p'
     if not os.path.exists(inputs['cart_out_general'] + inputs['ERA_ref_folder']):
@@ -301,8 +315,8 @@ if not os.path.exists(nomeout):
     print('{} not found, this is the first run. Setting up the computation..\n'.format(nomeout))
 
     if inputs['run_compare']:
-        if (not os.path.exists(ERA_ref_out)) or (inputs['year_range'] is None):
-            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
+        if (not os.path.exists(ERA_ref_out)) or (inputs['ref_year_range'] is None):
+            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['ref_year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
             pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
         else:
             print('Reference calculation already performed, reading from {}\n'.format(ERA_ref_out))

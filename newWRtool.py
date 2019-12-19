@@ -65,7 +65,7 @@ def std_outname(tag, inputs, ref_name = False):
             name_outputs += '_allyrs'
 
 
-    if inputs['detrended_anom_for_clustering']:
+    if inputs['detrended_anom_for_clustering'] or inputs['detrend_only_global']:
         name_outputs += '_dtr'
 
     return name_outputs
@@ -94,9 +94,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list, list]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list, list, str, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -136,6 +136,8 @@ defaults['draw_grid'] = True
 defaults['cmip6_naming'] = False
 defaults['bad_matching_rule'] = 'rms_mean'
 defaults['matching_hierarchy'] = None
+defaults['area_dtr'] = 'global'
+defaults['detrend_only_global'] = False
 
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
@@ -316,7 +318,7 @@ if not os.path.exists(nomeout):
 
     if inputs['run_compare']:
         if (not os.path.exists(ERA_ref_out)) or (inputs['ref_year_range'] is None):
-            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['ref_year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'])
+            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['ref_year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'])
             pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
         else:
             print('Reference calculation already performed, reading from {}\n'.format(ERA_ref_out))
@@ -344,7 +346,7 @@ if not os.path.exists(nomeout):
         else:
             filin = inputs['ensemble_filenames'][modname]
 
-        model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'])
+        model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'])
         # else:
         #     model_outs[modname] = cd.WRtool_from_file(inputs['ensemble_filenames'][modname], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ERA_ref['solver'], ref_patterns_area = ERA_ref['cluspattern_area'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ERA_ref['centroids'], netcdf4_read = inputs['netcdf4_read'])
 

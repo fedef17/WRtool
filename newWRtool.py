@@ -309,7 +309,7 @@ nomeout = inputs['cart_out'] + outname
 if inputs['ref_year_range'] is None:
     inputs['ref_year_range'] = inputs['year_range']
 
-if inputs['detrend_only_global']:
+if inputs['detrend_only_global'] and not inputs['remove_29feb']:
     inputs['remove_29feb'] = True
     print('WARNING!!! Key <remove_29feb> has been changed to True. Removing 29 Feb is needed to calculate and remove global trends.')
 

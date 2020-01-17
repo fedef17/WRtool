@@ -11,9 +11,11 @@ from matplotlib import pyplot as plt
 
 import pickle
 from scipy import io
+import iris
 
 import climtools_lib as ctl
 import climdiags as cd
+from copy import deepcopy as copy
 
 import warnings
 warnings.simplefilter('default')
@@ -94,9 +96,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group detrended_eof_calculation detrended_anom_for_clustering use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days wnd_years show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list, list, str, bool, bool]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, bool, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -131,7 +133,7 @@ defaults['color_palette'] = 'hls'
 defaults['netcdf4_read'] = False
 defaults['wnd_days'] = 20
 defaults['wnd_years'] = 30
-defaults['show_transitions'] = False
+defaults['show_transitions'] = True
 defaults['draw_grid'] = True
 defaults['cmip6_naming'] = False
 defaults['bad_matching_rule'] = 'rms_mean'
@@ -139,6 +141,8 @@ defaults['matching_hierarchy'] = None
 defaults['area_dtr'] = 'global'
 defaults['detrend_only_global'] = False
 defaults['remove_29feb'] = False
+defaults['regrid_model_data'] = False
+defaults['single_model_ens_list'] = False
 
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
@@ -185,59 +189,65 @@ if inputs['model_names'] is None:
         n_mod = len(inputs['filenames'])
         inputs['model_names'] = ['ens_{}'.format(i) for i in range(n_mod)]
 
-if inputs['is_ensemble']:
-    print('This is an ensemble run, finding all files.. \n')
+if inputs['single_model_ens_list']:
+    print('List of filenames is read as single-model ensemble\n')
+    if not inputs['is_ensemble']:
+        print('is_ensemble is set to True')
+        inputs['is_ensemble'] = True
+
+    if not inputs['cmip6_naming']:
+        print('cmip6 naming set to True')
+        inputs['cmip6_naming'] = True
+
     inputs['ensemble_filenames'] = dict()
     inputs['ensemble_members'] = dict()
-    # load the true file list
-    for filgenname, mod_name in zip(inputs['filenames'], inputs['model_names']):
-        modcart = inputs['cart_in']
-        namfilp = filgenname.split('*')
-        while '' in namfilp: namfilp.remove('')
-        if '/' in filgenname:
-            modcart = inputs['cart_in'] + '/'.join(filgenname.split('/')[:-1]) + '/'
-            namfilp = filgenname.split('/')[-1].split('*')
-        while '' in namfilp: namfilp.remove('')
 
-        lista_all = os.listdir(modcart)
-        lista_oks = [modcart + fi for fi in lista_all if np.all([namp in fi for namp in namfilp])]
-        namfilp.append(modcart)
+    mod_name = inputs['model_names'][0].split('_')[0]
+    inputs['model_names'] = [mod_name]
+    inputs['ensemble_filenames'][mod_name] = [inputs['cart_in']+fil for fil in inputs['filenames']]
 
-        if inputs['ens_option'] == 'all':
-            inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
-            inputs['ensemble_members'][mod_name] = []
-            for coso in np.sort(lista_oks):
-                for namp in namfilp:
-                    coso = coso.replace(namp,'###')
-                ens_id = '_'.join(coso.strip('###').split())
-                inputs['ensemble_members'][mod_name].append(ens_id)
-            print(mod_name, inputs['ensemble_filenames'][mod_name])
-            print(mod_name, inputs['ensemble_members'][mod_name])
+    inputs['ensemble_members'][mod_name] = []
+    for fi in inputs['filenames']:
+        cose = ctl.cmip6_naming(fi, seasonal = True)
+        ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
+        inputs['ensemble_members'][mod_name].append(ens_id)
 
-        if inputs['ens_option'] == 'member' or inputs['ens_option'] == 'year':
-            raise ValueError('NOT IMPLEMENTED')
-            # mem_field = inputs['starred_field_names'].index('member')
-            # allfiles = list(np.sort(lista_oks))
-            # all_ids = []
-            # all_mems = []
-            # for coso in allfiles:
-            #     for namp in namfilp:
-            #         coso = coso.replace(namp,' ')
-            #     ens_id = '_'.join(coso.strip().split())
-            #     all_ids.append(ens_id)
-            #     all_mems.append(coso.strip().split()[mem_field])
-            #
-            # if inputs['groups'] is not None:
-            #     raise ValueError('ens_option == member and groups specified are not compatible')
-            # else:
-            #     inputs['groups'] = dict()
-            #
-            # inputs['groups'][mod_name] = []
-            # for mem in np.sort(np.unique(all_mems)):
-            #     inputs['model_names']
-            #     inputs['ensemble_filenames'][mod_name]
-            #     inputs['ensemble_members'][mod_name]
-            #     inputs['groups'][mod_name] = []
+    inputs['filenames'] = ['gigi']
+
+if inputs['is_ensemble']:
+    print('This is an ensemble run.')
+    if inputs['ensemble_filenames'] is None:
+        print('Expanding the * in filenames. Finding all files.. \n')
+        inputs['ensemble_filenames'] = dict()
+        inputs['ensemble_members'] = dict()
+        # load the true file list
+        for filgenname, mod_name in zip(inputs['filenames'], inputs['model_names']):
+            modcart = inputs['cart_in']
+            namfilp = filgenname.split('*')
+            while '' in namfilp: namfilp.remove('')
+            if '/' in filgenname:
+                modcart = inputs['cart_in'] + '/'.join(filgenname.split('/')[:-1]) + '/'
+                namfilp = filgenname.split('/')[-1].split('*')
+            while '' in namfilp: namfilp.remove('')
+
+            lista_all = os.listdir(modcart)
+            lista_oks = [modcart + fi for fi in lista_all if np.all([namp in fi for namp in namfilp])]
+            namfilp.append(modcart)
+
+            if inputs['ens_option'] == 'all':
+                inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
+                inputs['ensemble_members'][mod_name] = []
+                for coso in np.sort(lista_oks):
+                    if not inputs['cmip6_naming']:
+                        for namp in namfilp:
+                            coso = coso.replace(namp,'###')
+                        ens_id = '_'.join(coso.strip('###').split('###'))
+                    else:
+                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = True)
+                        ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
+                    inputs['ensemble_members'][mod_name].append(ens_id)
+                print(mod_name, inputs['ensemble_filenames'][mod_name])
+                print(mod_name, inputs['ensemble_members'][mod_name])
 
 
 print('filenames: ', inputs['filenames'])
@@ -344,6 +354,15 @@ if not os.path.exists(nomeout):
             print('No comparison with observations. Setting use_reference_clusters to False.\n')
             inputs['use_reference_clusters'] = False
 
+    if inputs['regrid_model_data']:
+        print('Regrid of model data to reference grid is set to True. Loading reference iris cube..')
+        if inputs['netcdf4_read']:
+            inputs['netcdf4_read'] = False
+            print('<netcdf4_read> set to False.')
+        ref_cube = iris.load(inputs['ERA_ref_orig'])[0]
+    else:
+        ref_cube = None
+
     model_outs = dict()
     for modfile, modname in zip(inputs['filenames'], inputs['model_names']):
         if not inputs['is_ensemble']:
@@ -352,19 +371,25 @@ if not os.path.exists(nomeout):
             filin = inputs['ensemble_filenames'][modname]
 
         try:
-            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'])
+            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], wnd_years = inputs['wnd_years'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'])
         except Exception as exc:
             print('\n\n\n WARNING!!! EXCEPTION FOUND WHEN RUNNING MODEL {}: {}\n\n\n'.format(modname, exc))
             continue
-        # else:
-        #     model_outs[modname] = cd.WRtool_from_file(inputs['ensemble_filenames'][modname], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ERA_ref['solver'], ref_patterns_area = ERA_ref['cluspattern_area'], sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], detrended_eof_calculation = inputs['detrended_eof_calculation'], detrended_anom_for_clustering = inputs['detrended_anom_for_clustering'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ERA_ref['centroids'], netcdf4_read = inputs['netcdf4_read'])
+
+    if len(list(model_outs.keys())) == 0:
+        raise ValueError('NO MODEL WAS RUN. CHECK LOG FILE')
+
+    if inputs['is_ensemble']:
+        print('This is an ensemble run, splitting up individual members..')
+        model_outs = cd.extract_ensemble_results(model_outs, inputs['ensemble_members'])
 
     pickle.dump([model_outs, ERA_ref], open(nomeout, 'wb'))
-    try:
-        io.savemat(nomeout[:-2]+'.mat', mdict = {'models': model_outs, 'reference': ERA_ref})
-    except Exception as caos:
-        print(repr(caos))
-        print('Unable to produce .mat OUTPUT!!')
+
+    json_res = copy(model_outs)
+    json_res['reference'] = ERA_ref
+    json_res = cd.export_results_to_json(nomeout[:-2]+'.json', json_res)
+    io.savemat(nomeout[:-2]+'.mat', mdict = json_res)
+    del json_res
 else:
     print('Computation already performed. Reading output from {}\n'.format(nomeout))
     [model_outs, ERA_ref] = pickle.load(open(nomeout, 'rb'))
@@ -408,7 +433,10 @@ if inputs['out_figures']:
 if inputs['out_netcdf']:
     cart_out_nc = inputs['cart_out'] + 'outnc_' + std_outname(inputs['exp_name'], inputs) + '/'
     if not os.path.exists(cart_out_nc): os.mkdir(cart_out_nc)
-    cd.out_WRtool_netcdf(cart_out_nc, model_outs, ERA_ref, inputs)
+    if inputs['is_ensemble']:
+        cd.out_WRtool_netcdf_ensemble(cart_out_nc, model_outs, ERA_ref, inputs)
+    else:
+        cd.out_WRtool_netcdf(cart_out_nc, model_outs, ERA_ref, inputs)
 
 print('Check results in directory: {}\n'.format(inputs['cart_out']))
 print(ctl.datestamp()+'\n')

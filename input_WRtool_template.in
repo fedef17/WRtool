@@ -39,13 +39,14 @@ stoc1, stoc2, base1, base2
 
 ##### options for ensembles #####
 
+
 # Flag to read ensembles. If set to True, each element in the filelist or filenames is treated as a partial filename: the code looks for all files that match that partial name. Partial naming accepts special character *.
 [is_ensemble]
 False
 
-# **only active if is_ensemble is True. Option to treat ensembles: 'all' puts together all runs as if it were a single run; 'member' separates the analysis for each ensemble, treating it as a group; 'year' puts all members together and separates the analysis for years, treating each year as a group. AAAAAA -- ONLY ALL IS ACTIVE FOR NOW!
-[ens_option]
-all
+# Specify single-model ensemble with list of filenames? If True, all filenames are analyzed together. If False, each filename is analyzed separately.
+[single_model_ens_list]
+True
 
 ##########################################################################
 ##############  reference FILES  ################
@@ -66,6 +67,10 @@ ERA
 [ERA_ref_folder]
 ERA_ref
 
+# Select year range of reference calculation. If not specified, the model year_range will be used.
+[ref_year_range]
+1957, 2015
+
 ##########################################################################
 ##########################################################################
 ##############  2. options for PRECOMPUTE -- preprocessing  ################
@@ -73,6 +78,10 @@ ERA_ref
 # Select year range (two values separated by comma)
 [year_range]
 1957, 2015
+
+# Need regridding of model data? Set to True if some data are in a different grid.
+[regrid_model_data]
+True
 
 # Atmospheric level at which the variable is extracted (if more levels are present)
 [level]
@@ -131,23 +140,21 @@ NP, BL, AR, NN
 [run_sig_calc]
 False
 
-##### Advanced options #####
+### GLOBAL DETRENDING
 
 # Number of days for calculating the climatology. Default is 20.
 [wnd_days]
 20
 
-# Detrend anomalies before calculating eofs?  # Use with Caution and only for very long runs.
-[detrended_eof_calculation]
-False
+# Detrend global tendencies: removes a linear trend based on the seasonal average over a user-defined region (see key [area_dtr]).
+[detrend_only_global]
+True
 
-# Use the detrended anomalies also for the clustering?  # Use with Caution and only for very long runs.
-[detrended_anom_for_clustering]
-False
+# Area for global detrending
+[area_dtr]
+NH
 
-# Number of years for calculating the detrended climatology. Default is 30.
-[wnd_years]
-30
+##### Advanced options #####
 
 # Bad matching rule, one among: 'rms_mean', 'patcor_mean', 'rms_hierarchy', 'patcor_hierarchy'
 [bad_matching_rule]

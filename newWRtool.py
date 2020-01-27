@@ -384,7 +384,12 @@ if not os.path.exists(nomeout):
         print('This is an ensemble run, splitting up individual members..')
         model_outs = cd.extract_ensemble_results(model_outs, inputs['ensemble_members'])
 
-    pickle.dump([model_outs, ERA_ref], open(nomeout, 'wb'))
+    ERA_ref_light = copy(ERA_ref)
+    del ERA_ref_light['solver']
+    del ERA_ref_light['var_area']
+    del ERA_ref_light['var_glob']
+    del ERA_ref_light['regime_transition_pcs']
+    pickle.dump([model_outs, ERA_ref_light], open(nomeout, 'wb'))
 
     json_res = copy(model_outs)
     json_res['reference'] = ERA_ref

@@ -72,8 +72,8 @@ def std_outname(tag, inputs, ref_name = False):
 
     return name_outputs
 
-if np.any(['log_WRtool_' in cos for cos in os.listdir('.')]):
-    os.system('rm log_WRtool_*log')
+#if np.any(['log_WRtool_' in cos for cos in os.listdir('.')]):
+#    os.system('rm log_WRtool_*log')
 
 # open our log file
 logname = 'log_WRtool_{}.log'.format(ctl.datestamp())

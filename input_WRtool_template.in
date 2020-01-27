@@ -192,6 +192,10 @@ Nstereo
 [bounding_lat]
 30
 
+# Plot style: contourf (BUG in matplotlib!!), contour, pcolormesh
+[plot_style]
+pcolormesh
+
 # Margins of the plot for visualization 'standard'. If no margins are specified, the whole globe is showed.
 #[plot_margins]
 -20, 90, 20, 70

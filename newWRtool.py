@@ -211,6 +211,9 @@ if inputs['model_names'] is None:
         n_mod = len(inputs['filenames'])
         inputs['model_names'] = ['ens_{}'.format(i) for i in range(n_mod)]
 
+inputs['ensemble_filenames'] = None
+inputs['ensemble_members'] = None
+
 if inputs['single_model_ens_list']:
     print('List of filenames is read as single-model ensemble\n')
     if not inputs['is_ensemble']:

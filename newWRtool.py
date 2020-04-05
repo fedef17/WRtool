@@ -236,7 +236,7 @@ if inputs['single_model_ens_list']:
             if inputs['is_seasonal']:
                 ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
             else:
-                ens_id = cose['member'] + '_' + cose['dates'][0][:4] '_' + cose['dates'][1][:4]
+                ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
         elif inputs['custom_naming_keys'] is not None:
             cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
             if inputs['is_seasonal']:
@@ -280,7 +280,7 @@ if inputs['is_ensemble']:
                         if inputs['is_seasonal']:
                             ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
                         else:
-                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] '_' + cose['dates'][1][:4]
+                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
                     elif inputs['custom_naming_keys'] is not None:
                         cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
                         if inputs['is_seasonal']:

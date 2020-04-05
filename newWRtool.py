@@ -188,7 +188,9 @@ if inputs['custom_naming_keys'] is not None:
         inputs['cmip6_naming'] = False
 
 if inputs['model_names'] is None:
-    if inputs['cmip6_naming']:
+    if inputs['is_ensemble'] and not inputs['single_model_ens_list']:
+        pass
+    elif inputs['cmip6_naming']:
         print('Getting the model names from filenames using CMIP6 convention..\n')
         inputs['model_names'] = []
         for fi in inputs['filenames']:
@@ -258,7 +260,7 @@ if inputs['is_ensemble']:
         inputs['ensemble_filenames'] = dict()
         inputs['ensemble_members'] = dict()
         # load the true file list
-        for filgenname, mod_name in zip(inputs['filenames'], inputs['model_names']):
+        for ifi, filgenname in enumerate(inputs['filenames']):
             modcart = inputs['cart_in']
             namfilp = filgenname.split('*')
             while '' in namfilp: namfilp.remove('')
@@ -272,6 +274,22 @@ if inputs['is_ensemble']:
             namfilp.append(modcart)
 
             if inputs['ens_option'] == 'all':
+                if inputs['model_names'] is not None:
+                    mod_name = inputs['model_names'][ifi]
+                else:
+                    coso = lista_oks[0]
+                    if inputs['cmip6_naming']:
+                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
+                    elif inputs['custom_naming_keys'] is not None:
+                        cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = inputs['is_seasonal'])
+                    else:
+                        raise ValueError('specify model names or naming standard')
+
+                    if inputs['is_seasonal']:
+                        mod_name = cose['model']
+                    else:
+                        mod_name = cose['model'] + '_' + cose['member']
+
                 inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
                 inputs['ensemble_members'][mod_name] = []
                 for coso in np.sort(lista_oks):

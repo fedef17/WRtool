@@ -4,6 +4,7 @@
 import numpy as np
 import sys
 import os
+import glob
 
 import matplotlib
 matplotlib.use('Agg') # This is to avoid the code crash if no Xwindow is available
@@ -261,61 +262,65 @@ if inputs['is_ensemble']:
         inputs['ensemble_members'] = dict()
         # load the true file list
         for ifi, filgenname in enumerate(inputs['filenames']):
-            modcart = inputs['cart_in']
-            namfilp = filgenname.split('*')
-            while '' in namfilp: namfilp.remove('')
-            if '/' in filgenname:
-                modcart = inputs['cart_in'] + '/'.join(filgenname.split('/')[:-1]) + '/'
-                namfilp = filgenname.split('/')[-1].split('*')
-            while '' in namfilp: namfilp.remove('')
+            # modcart = inputs['cart_in']
+            lista_oks = glob.glob(inputs['cart_in']+filgenname)
 
-            lista_all = os.listdir(modcart)
-            lista_oks = [modcart + fi for fi in lista_all if np.all([namp in fi for namp in namfilp])]
-            namfilp.append(modcart)
+            # namfilp = filgenname.split('*')
+            # while '' in namfilp: namfilp.remove('')
+            # if '/' in filgenname:
+            #     modcart = inputs['cart_in'] + '/'.join(filgenname.split('/')[:-1]) + '/'
+            #     namfilp = filgenname.split('/')[-1].split('*')
+            # while '' in namfilp: namfilp.remove('')
 
-            if inputs['ens_option'] == 'all':
-                if inputs['model_names'] is not None:
-                    mod_name = inputs['model_names'][ifi]
+            # print(modcart)
+            # lista_all = os.listdir(modcart)
+            # lista_oks = [modcart + fi for fi in lista_all if np.all([namp in fi for namp in namfilp])]
+            # namfilp.append(modcart)
+
+            if inputs['model_names'] is not None:
+                mod_name = inputs['model_names'][ifi]
+            else:
+                coso = lista_oks[0]
+                if inputs['cmip6_naming']:
+                    cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
+                elif inputs['custom_naming_keys'] is not None:
+                    cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = inputs['is_seasonal'])
                 else:
-                    coso = lista_oks[0]
-                    if inputs['cmip6_naming']:
-                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
-                    elif inputs['custom_naming_keys'] is not None:
-                        cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = inputs['is_seasonal'])
-                    else:
-                        raise ValueError('specify model names or naming standard')
+                    raise ValueError('specify model names or naming standard')
 
+                if inputs['is_seasonal']:
+                    mod_name = cose['model']
+                else:
+                    mod_name = cose['model'] + '_' + cose['member']
+
+            inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
+            inputs['ensemble_members'][mod_name] = []
+            for coso in np.sort(lista_oks):
+                if inputs['cmip6_naming']:
+                    cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
                     if inputs['is_seasonal']:
-                        mod_name = cose['model']
+                        ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
                     else:
-                        mod_name = cose['model'] + '_' + cose['member']
-
-                inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
-                inputs['ensemble_members'][mod_name] = []
-                for coso in np.sort(lista_oks):
-                    if inputs['cmip6_naming']:
-                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
-                        if inputs['is_seasonal']:
+                        ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
+                elif inputs['custom_naming_keys'] is not None:
+                    cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
+                    if inputs['is_seasonal']:
+                        if 'dates' in cose:
                             ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
                         else:
-                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
-                    elif inputs['custom_naming_keys'] is not None:
-                        cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
-                        if inputs['is_seasonal']:
-                            if 'dates' in cose:
-                                ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
-                            else:
-                                ens_id = cose['member'] + '_' + cose['sdate']
-                        else:
-                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
+                            ens_id = cose['member'] + '_' + cose['sdate']
                     else:
-                        for namp in namfilp:
-                            coso = coso.replace(namp,'###')
-                        ens_id = '_'.join(coso.strip('###').split('###'))
+                        ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
+                else:
+                    print('WARNING! No naming rule for ensemble. Setting filenames as ens_id.')
+                    # for namp in namfilp:
+                    #     coso = coso.replace(namp,'###')
+                    # ens_id = '_'.join(coso.strip('###').split('###'))
+                    ens_id = coso.split('/')[-1].strip('.nc')
 
-                    inputs['ensemble_members'][mod_name].append(ens_id)
-                print(mod_name, inputs['ensemble_filenames'][mod_name])
-                print(mod_name, inputs['ensemble_members'][mod_name])
+                inputs['ensemble_members'][mod_name].append(ens_id)
+            print(mod_name, inputs['ensemble_filenames'][mod_name])
+            print(mod_name, inputs['ensemble_members'][mod_name])
 
 
 print('filenames: ', inputs['filenames'])

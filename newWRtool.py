@@ -303,7 +303,7 @@ if inputs['is_ensemble']:
                     else:
                         ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
                 elif inputs['custom_naming_keys'] is not None:
-                    cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
+                    cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = inputs['is_seasonal'])
                     if inputs['is_seasonal']:
                         if 'dates' in cose:
                             ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]

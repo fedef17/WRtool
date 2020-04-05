@@ -261,6 +261,11 @@ if inputs['is_ensemble']:
         inputs['ensemble_filenames'] = dict()
         inputs['ensemble_members'] = dict()
         # load the true file list
+        set_model_names = False
+        if inputs['model_names'] is None:
+            inputs['model_names'] = []
+            set_model_names = True
+
         for ifi, filgenname in enumerate(inputs['filenames']):
             # modcart = inputs['cart_in']
             lista_oks = glob.glob(inputs['cart_in']+filgenname)
@@ -277,7 +282,7 @@ if inputs['is_ensemble']:
             # lista_oks = [modcart + fi for fi in lista_all if np.all([namp in fi for namp in namfilp])]
             # namfilp.append(modcart)
 
-            if inputs['model_names'] is not None:
+            if not set_model_names:
                 mod_name = inputs['model_names'][ifi]
             else:
                 coso = lista_oks[0]
@@ -292,6 +297,8 @@ if inputs['is_ensemble']:
                     mod_name = cose['model']
                 else:
                     mod_name = cose['model'] + '_' + cose['member']
+
+                inputs['model_names'].append(mod_name)
 
             inputs['ensemble_filenames'][mod_name] = list(np.sort(lista_oks))
             inputs['ensemble_members'][mod_name] = []

@@ -98,9 +98,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -151,6 +151,7 @@ defaults['frac_super'] = 0.02
 defaults['ignore_model_error'] = False
 defaults['select_area_first'] = False
 defaults['deg_dtr'] = 1
+defaults['is_seasonal'] = False
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -231,16 +232,22 @@ if inputs['single_model_ens_list']:
     inputs['ensemble_members'][mod_name] = []
     for fi in inputs['filenames']:
         if inputs['cmip6_naming']:
-            cose = ctl.cmip6_naming(fi, seasonal = True)
-            ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
-            inputs['ensemble_members'][mod_name].append(ens_id)
-        elif inputs['custom_naming_keys'] is not None:
-            cose = ctl.custom_naming(fi, inputs['custom_naming_keys'], seasonal = True)
-            if 'dates' in cose:
+            cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
+            if inputs['is_seasonal']:
                 ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
             else:
-                ens_id = cose['member'] + '_' + cose['sdate']
-            inputs['ensemble_members'][mod_name].append(ens_id)
+                ens_id = cose['member'] + '_' + cose['dates'][0][:4] '_' + cose['dates'][1][:4]
+        elif inputs['custom_naming_keys'] is not None:
+            cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
+            if inputs['is_seasonal']:
+                if 'dates' in cose:
+                    ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
+                else:
+                    ens_id = cose['member'] + '_' + cose['sdate']
+            else:
+                ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
+
+        inputs['ensemble_members'][mod_name].append(ens_id)
 
     inputs['filenames'] = ['gigi']
 
@@ -269,14 +276,20 @@ if inputs['is_ensemble']:
                 inputs['ensemble_members'][mod_name] = []
                 for coso in np.sort(lista_oks):
                     if inputs['cmip6_naming']:
-                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = True)
-                        ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
-                    elif inputs['custom_naming_keys'] is not None:
-                        cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
-                        if 'dates' in cose:
+                        cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
+                        if inputs['is_seasonal']:
                             ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
                         else:
-                            ens_id = cose['member'] + '_' + cose['sdate']
+                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] '_' + cose['dates'][1][:4]
+                    elif inputs['custom_naming_keys'] is not None:
+                        cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
+                        if inputs['is_seasonal']:
+                            if 'dates' in cose:
+                                ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
+                            else:
+                                ens_id = cose['member'] + '_' + cose['sdate']
+                        else:
+                            ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
                     else:
                         for namp in namfilp:
                             coso = coso.replace(namp,'###')
@@ -427,8 +440,8 @@ if not os.path.exists(nomeout):
     if len(list(model_outs.keys())) == 0:
         raise ValueError('NO MODEL WAS RUN. CHECK LOG FILE')
 
-    if inputs['is_ensemble']:
-        print('This is an ensemble run, splitting up individual members..')
+    if inputs['is_ensemble'] and inputs['is_seasonal']:
+        print('This is a seasonal ensemble run, splitting up individual members..')
         model_outs = cd.extract_ensemble_results(model_outs, inputs['ensemble_members'])
 
     restot = dict()
@@ -498,7 +511,7 @@ if inputs['out_figures']:
 if inputs['out_netcdf']:
     cart_out_nc = inputs['cart_out'] + 'outnc_' + std_outname(inputs['exp_name'], inputs) + '/'
     if not os.path.exists(cart_out_nc): os.mkdir(cart_out_nc)
-    if inputs['is_ensemble']:
+    if inputs['is_ensemble'] and inputs['is_seasonal']:
         cd.out_WRtool_netcdf_ensemble(cart_out_nc, model_outs, ERA_ref, inputs)
     else:
         cd.out_WRtool_netcdf(cart_out_nc, model_outs, ERA_ref, inputs)

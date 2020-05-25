@@ -27,6 +27,9 @@ plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 
 def std_outname(tag, inputs, ref_name = False):
+    """
+    Gives the standard name for folders and output files.
+    """
     if inputs['area'] != 'custom':
         name_outputs = '{}_{}_{}_{}clus'.format(tag, inputs['season'], inputs['area'], inputs['numclus'])
     else:
@@ -70,8 +73,10 @@ def std_outname(tag, inputs, ref_name = False):
         else:
             name_outputs += '_allyrs'
 
-
-    if inputs['detrend_only_global']: name_outputs += '_dtr'
+    if inputs['detrend_local_linear']:
+        name_outputs += '_dtrloc'
+    elif inputs['detrend_only_global']:
+        name_outputs += '_dtr'
 
     return name_outputs
 
@@ -99,9 +104,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -153,6 +158,7 @@ defaults['ignore_model_error'] = False
 defaults['select_area_first'] = False
 defaults['deg_dtr'] = 1
 defaults['is_seasonal'] = False
+defaults['detrend_local_linear'] = False
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -407,7 +413,7 @@ nomeout = inputs['cart_out'] + outname
 if inputs['ref_year_range'] is None:
     inputs['ref_year_range'] = inputs['year_range']
 
-if inputs['detrend_only_global'] and not inputs['remove_29feb']:
+if (inputs['detrend_only_global'] or inputs['detrend_local_linear']) and not inputs['remove_29feb']:
     inputs['remove_29feb'] = True
     print('WARNING!!! Key <remove_29feb> has been changed to True. Removing 29 Feb is needed to calculate and remove global trends.')
 
@@ -421,7 +427,7 @@ if not os.path.exists(nomeout):
 
     if inputs['run_compare']:
         if (not os.path.exists(ERA_ref_out)) or (inputs['ref_year_range'] is None):
-            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['ref_year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], deg_dtr = inputs['deg_dtr'])
+            ERA_ref = cd.WRtool_from_file(inputs['ERA_ref_orig'], inputs['season'], area, extract_level_hPa = inputs['level'], numclus = inputs['numclus'], heavy_output = True, run_significance_calc = inputs['run_sig_calc'], sel_yr_range = inputs['ref_year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'])
             pickle.dump(ERA_ref, open(ERA_ref_out, 'wb'))
         else:
             print('Reference calculation already performed, reading from {}\n'.format(ERA_ref_out))
@@ -459,7 +465,7 @@ if not os.path.exists(nomeout):
             filin = inputs['ensemble_filenames'][modname]
 
         try:
-            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'])
+            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'])
         except Exception as exc:
             if inputs['ignore_model_error']:
                 print('\n\n\n WARNING!!! EXCEPTION FOUND WHEN RUNNING MODEL {}: {}\n\n\n'.format(modname, exc))

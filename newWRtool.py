@@ -489,6 +489,9 @@ if not os.path.exists(nomeout):
             else:
                 print('{} not found in historical runs\n'.format(modname))
                 continue
+        else:
+            climate_mean = None
+            dates_climate_mean = None
 
         try:
             model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'], rebase_to_historical = inputs['rebase_to_historical'], climate_mean = climate_mean, dates_climate_mean = dates_climate_mean)

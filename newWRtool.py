@@ -465,7 +465,7 @@ if not os.path.exists(nomeout):
     else:
         ref_cube = None
 
-    if rebase_to_historical:
+    if inputs['rebase_to_historical']:
         print('Loading historical climate mean from {}\n'.format(file_hist_rebase))
         clim_rebase = dict()
         dates_clim_rebase = dict()
@@ -482,7 +482,7 @@ if not os.path.exists(nomeout):
         else:
             filin = inputs['ensemble_filenames'][modname]
 
-        if rebase_to_historical:
+        if inputs['rebase_to_historical']:
             if modname in clim_rebase.keys():
                 climate_mean = clim_rebase[modname]
                 dates_climate_mean = dates_clim_rebase[modname]

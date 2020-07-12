@@ -78,6 +78,9 @@ def std_outname(tag, inputs, ref_name = False):
     elif inputs['detrend_only_global']:
         name_outputs += '_dtr'
 
+    if inputs['rebase_to_historical']:
+        name_outputs += '_reb'
+
     return name_outputs
 
 #if np.any(['log_WRtool_' in cos for cos in os.listdir('.')]):
@@ -104,9 +107,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -159,6 +162,8 @@ defaults['select_area_first'] = False
 defaults['deg_dtr'] = 1
 defaults['is_seasonal'] = False
 defaults['detrend_local_linear'] = False
+defaults['rebase_to_historical'] = False
+defaults['file_hist_rebase'] = None
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -176,6 +181,9 @@ else:
 if inputs['cart_in'][-1] != '/': inputs['cart_in'] += '/'
 if inputs['cart_out_general'][-1] != '/': inputs['cart_out_general'] += '/'
 if inputs['ERA_ref_folder'][-1] != '/': inputs['ERA_ref_folder'] += '/'
+
+if inputs['rebase_to_historical'] and inputs['file_hist_rebase'] is None:
+    raise ValueError('Set historical filename for rebase in file_hist_rebase')
 
 if inputs['filenames'] is None:
     if inputs['filelist'] is None:
@@ -457,6 +465,16 @@ if not os.path.exists(nomeout):
     else:
         ref_cube = None
 
+    if rebase_to_historical:
+        print('Loading historical climate mean from {}\n'.format(file_hist_rebase))
+        clim_rebase = dict()
+        dates_clim_rebase = dict()
+        results_hist, _ = ctl.load_wrtool(file_hist_rebase)
+        for ke in results_hist:
+            clim_rebase[ke] = results_hist[ke]['climate_mean']
+            dates_clim_rebase[ke] = results_hist[ke]['climate_mean']
+        del results_hist
+
     model_outs = dict()
     for modfile, modname in zip(inputs['filenames'], inputs['model_names']):
         if not inputs['is_ensemble']:
@@ -464,8 +482,16 @@ if not os.path.exists(nomeout):
         else:
             filin = inputs['ensemble_filenames'][modname]
 
+        if rebase_to_historical:
+            if modname in clim_rebase.keys():
+                climate_mean = clim_rebase[modname]
+                dates_climate_mean = dates_clim_rebase[modname]
+            else:
+                print('{} not found in historical runs\n'.format(modname))
+                continue
+
         try:
-            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'])
+            model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'], rebase_to_historical = inputs['rebase_to_historical'], climate_mean = climate_mean, dates_climate_mean = dates_climate_mean)
         except Exception as exc:
             if inputs['ignore_model_error']:
                 print('\n\n\n WARNING!!! EXCEPTION FOUND WHEN RUNNING MODEL {}: {}\n\n\n'.format(modname, exc))

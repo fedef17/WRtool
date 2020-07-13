@@ -78,8 +78,9 @@ def std_outname(tag, inputs, ref_name = False):
     elif inputs['detrend_only_global']:
         name_outputs += '_dtr'
 
-    if inputs['rebase_to_historical']:
-        name_outputs += '_reb'
+    if not ref_name:
+        if inputs['rebase_to_historical']:
+            name_outputs += '_reb'
 
     return name_outputs
 

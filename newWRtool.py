@@ -473,7 +473,7 @@ if not os.path.exists(nomeout):
         results_hist, _ = ctl.load_wrtool(inputs['file_hist_rebase'])
         for ke in results_hist:
             clim_rebase[ke] = results_hist[ke]['climate_mean']
-            dates_clim_rebase[ke] = results_hist[ke]['dates_climate_mean']
+            dates_clim_rebase[ke] = results_hist[ke]['climate_mean_dates']
         del results_hist
 
     model_outs = dict()

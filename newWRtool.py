@@ -466,10 +466,10 @@ if not os.path.exists(nomeout):
         ref_cube = None
 
     if inputs['rebase_to_historical']:
-        print('Loading historical climate mean from {}\n'.format(file_hist_rebase))
+        print('Loading historical climate mean from {}\n'.format(inputs['file_hist_rebase']))
         clim_rebase = dict()
         dates_clim_rebase = dict()
-        results_hist, _ = ctl.load_wrtool(file_hist_rebase)
+        results_hist, _ = ctl.load_wrtool(inputs['file_hist_rebase'])
         for ke in results_hist:
             clim_rebase[ke] = results_hist[ke]['climate_mean']
             dates_clim_rebase[ke] = results_hist[ke]['dates_climate_mean']

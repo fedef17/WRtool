@@ -250,13 +250,13 @@ if inputs['single_model_ens_list']:
     inputs['ensemble_members'][mod_name] = []
     for fi in inputs['filenames']:
         if inputs['cmip6_naming']:
-            cose = ctl.cmip6_naming(coso.split('/')[-1], seasonal = inputs['is_seasonal'])
+            cose = ctl.cmip6_naming(fi.split('/')[-1], seasonal = inputs['is_seasonal'])
             if inputs['is_seasonal']:
                 ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]
             else:
                 ens_id = cose['member'] + '_' + cose['dates'][0][:4] + '_' + cose['dates'][1][:4]
         elif inputs['custom_naming_keys'] is not None:
-            cose = ctl.custom_naming(coso.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
+            cose = ctl.custom_naming(fi.split('/')[-1], inputs['custom_naming_keys'], seasonal = True)
             if inputs['is_seasonal']:
                 if 'dates' in cose:
                     ens_id = cose['member'] + '_' + cose['sdate'] + '_f' + cose['dates'][0][:4]

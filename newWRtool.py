@@ -23,6 +23,7 @@ warnings.simplefilter('default')
 warnings.filterwarnings('default', category=DeprecationWarning)
 
 #######################################
+DEBUG = True
 plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 
@@ -537,6 +538,11 @@ else:
         ERA_ref = restot['reference']
     else: # for backward Compatibility
         model_outs, ERA_ref = restot
+
+    if DEBUG:
+        json_res = copy(model_outs)
+        json_res['reference'] = ERA_ref
+        json_res = cd.export_results_to_json(nomeout[:-2]+'.json', json_res)
 
 os.system('cp {} {}'.format(file_input, inputs['cart_out'] + std_outname(inputs['exp_name'], inputs) + '.in'))
 

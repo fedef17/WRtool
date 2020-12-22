@@ -472,9 +472,21 @@ if not os.path.exists(nomeout):
         clim_rebase = dict()
         dates_clim_rebase = dict()
         results_hist, _ = ctl.load_wrtool(inputs['file_hist_rebase'])
-        for ke in results_hist:
-            clim_rebase[ke] = results_hist[ke]['climate_mean']
-            dates_clim_rebase[ke] = results_hist[ke]['climate_mean_dates']
+        if inputs['cmip6_naming']:
+            # Per consistenza uso sempre il primo member dello storico
+            okmodhist = np.unique([ke.split('_')[0] for ke in results_hist])
+            for mod in okmodhist:
+                okke = [ke for ke in results_hist if ke.split('_')[0] == mod]
+                if np.any(['r1' in ke for ke in okke]):
+                    ke = [kee for kee in okke if 'r1' in kee][0]
+                else:
+                    ke = okke[0]
+                clim_rebase[mod] = results_hist[ke]['climate_mean']
+                dates_clim_rebase[mod] = results_hist[ke]['climate_mean_dates']
+        else:
+            for ke in results_hist:
+                clim_rebase[ke] = results_hist[ke]['climate_mean']
+                dates_clim_rebase[ke] = results_hist[ke]['climate_mean_dates']
         del results_hist
 
     model_outs = dict()
@@ -485,11 +497,16 @@ if not os.path.exists(nomeout):
             filin = inputs['ensemble_filenames'][modname]
 
         if inputs['rebase_to_historical']:
-            if modname in clim_rebase.keys():
-                climate_mean = clim_rebase[modname]
-                dates_climate_mean = dates_clim_rebase[modname]
+            if inputs['cmip6_naming']:
+                mod = modname.split('_')[0]
             else:
-                print('{} not found in historical runs\n'.format(modname))
+                mod = modname
+
+            if mod in clim_rebase.keys():
+                climate_mean = clim_rebase[mod]
+                dates_climate_mean = dates_clim_rebase[mod]
+            else:
+                print('{} not found in historical runs\n'.format(mod))
                 continue
         else:
             climate_mean = None

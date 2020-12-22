@@ -28,13 +28,17 @@ prova_01
 [filenames]
 gph500_sppt_100.nc, gph500_sppt_200.nc, gph500_nosppt_100.nc, gph500_nosppt_200.nc
 
-# Use CMIP6 naming convention (e.g. zg_day_MODEL_hist-1950_MEMBER_...); models are tagged MODEL_MEMBER. If set to True, key [filenames] is ignored.
+# Use CMIP6 naming convention (e.g. zg_day_MODEL_hist-1950_MEMBER_...); models are tagged MODEL_MEMBER. If set to True, key [model_names] is ignored.
 [cmip6_naming]
 False
 
 # Name of the dataset (one entry per each input file)
 [model_names]
 stoc1, stoc2, base1, base2
+
+### option to read CMIP6 data from archive. If set to True, reads all models/member from the archive, without specifying the filename. NOT WORKING YET!
+###[read_from_cmip6_archive]
+####True
 
 
 ##### options for ensembles #####

@@ -477,8 +477,8 @@ if not os.path.exists(nomeout):
             okmodhist = np.unique([ke.split('_')[0] for ke in results_hist])
             for mod in okmodhist:
                 okke = [ke for ke in results_hist if ke.split('_')[0] == mod]
-                if np.any(['r1' in ke for ke in okke]):
-                    ke = [kee for kee in okke if 'r1' in kee][0]
+                if np.any(['r1i' in ke for ke in okke]):
+                    ke = [kee for kee in okke if 'r1i' in kee][0]
                 else:
                     ke = okke[0]
                 clim_rebase[mod] = results_hist[ke]['climate_mean']
@@ -544,7 +544,7 @@ if not os.path.exists(nomeout):
 
     json_res = copy(model_outs)
     json_res['reference'] = copy(ERA_ref)
-    
+
     json_res = cd.export_results_to_json(nomeout[:-2]+'.json', json_res)
     io.savemat(nomeout[:-2]+'.mat', mdict = json_res)
     del json_res

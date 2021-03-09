@@ -8,6 +8,9 @@ The main results are synthetically listed in the *results.dat* file. Optionally 
 
 ![Weather Regimes in the North Atlantic](https://github.com/fedef17/WRtool/blob/master/eraclus.png)
 
+To cite this repository: 
+[![DOI](https://zenodo.org/badge/138048137.svg)](https://zenodo.org/badge/latestdoi/138048137)
+
 ## How to install WRtool
 
 WRtool is written in Python3, with a couple of routines in Fortran, and needs the ClimTools library to work.

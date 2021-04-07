@@ -109,9 +109,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase rebase_to_control'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -166,6 +166,7 @@ defaults['is_seasonal'] = False
 defaults['detrend_local_linear'] = False
 defaults['rebase_to_historical'] = False
 defaults['file_hist_rebase'] = None
+defaults['rebase_to_control'] = False
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -184,8 +185,15 @@ if inputs['cart_in'][-1] != '/': inputs['cart_in'] += '/'
 if inputs['cart_out_general'][-1] != '/': inputs['cart_out_general'] += '/'
 if inputs['ERA_ref_folder'][-1] != '/': inputs['ERA_ref_folder'] += '/'
 
-if inputs['rebase_to_historical'] and inputs['file_hist_rebase'] is None:
-    raise ValueError('Set historical filename for rebase in file_hist_rebase')
+if inputs['rebase_to_control']:
+    print('Setting rebase to first model!! Check that this is the control run.')
+    inputs['rebase_to_historical'] = True
+    if not inputs['detrend_only_global']:
+        print('WARNING!! rebasing to control without removing the global area trend could cause inconsistencies! Suggest setting detrend_only_global to True')
+
+if inputs['rebase_to_historical']:
+    if inputs['file_hist_rebase'] is None and not inputs['rebase_to_control']:
+        raise ValueError('Set historical filename for rebase in file_hist_rebase or set rebase_to_control to True')
 
 if inputs['filenames'] is None:
     if inputs['filelist'] is None:
@@ -468,46 +476,57 @@ if not os.path.exists(nomeout):
         ref_cube = None
 
     if inputs['rebase_to_historical']:
-        print('Loading historical climate mean from {}\n'.format(inputs['file_hist_rebase']))
-        clim_rebase = dict()
-        dates_clim_rebase = dict()
-        results_hist, _ = ctl.load_wrtool(inputs['file_hist_rebase'])
-        if inputs['cmip6_naming']:
-            # Per consistenza uso sempre il primo member dello storico
-            okmodhist = np.unique([ke.split('_')[0] for ke in results_hist])
-            for mod in okmodhist:
-                okke = [ke for ke in results_hist if ke.split('_')[0] == mod]
-                if np.any(['r1i' in ke for ke in okke]):
-                    ke = [kee for kee in okke if 'r1i' in kee][0]
-                else:
-                    ke = okke[0]
-                clim_rebase[mod] = results_hist[ke]['climate_mean']
-                dates_clim_rebase[mod] = results_hist[ke]['climate_mean_dates']
-        else:
-            for ke in results_hist:
-                clim_rebase[ke] = results_hist[ke]['climate_mean']
-                dates_clim_rebase[ke] = results_hist[ke]['climate_mean_dates']
-        del results_hist
+        if inputs['file_hist_rebase'] is not None:
+            print('Loading historical climate mean from {}\n'.format(inputs['file_hist_rebase']))
+            clim_rebase = dict()
+            dates_clim_rebase = dict()
+            results_hist, _ = ctl.load_wrtool(inputs['file_hist_rebase'])
+            if inputs['cmip6_naming']:
+                # Per consistenza uso sempre il primo member dello storico
+                okmodhist = np.unique([ke.split('_')[0] for ke in results_hist])
+                for mod in okmodhist:
+                    okke = [ke for ke in results_hist if ke.split('_')[0] == mod]
+                    if np.any(['r1i' in ke for ke in okke]):
+                        ke = [kee for kee in okke if 'r1i' in kee][0]
+                    else:
+                        ke = okke[0]
+                    clim_rebase[mod] = results_hist[ke]['climate_mean']
+                    dates_clim_rebase[mod] = results_hist[ke]['climate_mean_dates']
+            else:
+                for ke in results_hist:
+                    clim_rebase[ke] = results_hist[ke]['climate_mean']
+                    dates_clim_rebase[ke] = results_hist[ke]['climate_mean_dates']
+            del results_hist
 
     model_outs = dict()
-    for modfile, modname in zip(inputs['filenames'], inputs['model_names']):
+    for iii, (modfile, modname) in enumerate(zip(inputs['filenames'], inputs['model_names'])):
         if not inputs['is_ensemble']:
             filin = inputs['cart_in']+modfile
         else:
             filin = inputs['ensemble_filenames'][modname]
 
         if inputs['rebase_to_historical']:
-            if inputs['cmip6_naming']:
-                mod = modname.split('_')[0]
-            else:
-                mod = modname
+            if inputs['rebase_to_control']:
+                if iii == 0:
+                    print('This is the control run: {}. Calculating the climate mean'.format(inputs['model_names'][0]))
+                    climate_mean = None
+                    dates_climate_mean = None
+                else:
+                    print('Setting climate_mean to that of {}'.format(inputs['model_names'][0]))
+                    climate_mean = model_outs[inputs['model_names'][0]]['climate_mean']
+                    dates_climate_mean = model_outs[inputs['model_names'][0]]['dates_climate_mean']
+            elif inputs['file_hist_rebase'] is not None:
+                if inputs['cmip6_naming']:
+                    mod = modname.split('_')[0]
+                else:
+                    mod = modname
 
-            if mod in clim_rebase.keys():
-                climate_mean = clim_rebase[mod]
-                dates_climate_mean = dates_clim_rebase[mod]
-            else:
-                print('{} not found in historical runs\n'.format(mod))
-                continue
+                if mod in clim_rebase.keys():
+                    climate_mean = clim_rebase[mod]
+                    dates_climate_mean = dates_clim_rebase[mod]
+                else:
+                    print('{} not found in historical runs\n'.format(mod))
+                    continue
         else:
             climate_mean = None
             dates_climate_mean = None

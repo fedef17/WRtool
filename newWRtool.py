@@ -590,12 +590,14 @@ for (area, season) in inputs['multiple_area_season']:
 
         pickle.dump(restot, open(nomeout, 'wb'))
 
-        json_res = copy(model_outs)
-        json_res['reference'] = copy(ERA_ref)
-
-        json_res = cd.export_results_to_json(nomeout[:-2]+'.json', json_res)
-        io.savemat(nomeout[:-2]+'.mat', mdict = json_res)
-        del json_res
+        try:
+            json_res = copy(model_outs)
+            json_res['reference'] = copy(ERA_ref)
+            json_res = cd.export_results_to_json(nomeout[:-2]+'.json', json_res)
+            io.savemat(nomeout[:-2]+'.mat', mdict = json_res)
+            del json_res
+        except:
+            pass
     else:
         print('Computation already performed. Reading output from {}\n'.format(nomeout))
         restot = pickle.load(open(nomeout, 'rb'))

@@ -17,6 +17,7 @@ import iris
 import climtools_lib as ctl
 import climdiags as cd
 from copy import deepcopy as copy
+import itertools as itt
 
 import warnings
 warnings.simplefilter('default')

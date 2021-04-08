@@ -565,12 +565,13 @@ for (area, season) in inputs['multiple_area_season']:
             read_data_from_p = None
             write_data_to_p = None
             if inputs['dump_regridded']:
-                filraw = inputs['cart_out'] + 'rawdata_' + std_outname(inputs['exp_name'], inputs) + '_' + modname + '.p'
+                filraw = inputs['cart_out'] + 'rawdata_' + inputs['exp_name'] + '_' + modname + '.p'
                 if os.path.exists(filraw):
                     print('Raw data exists. Reading from ' + filraw)
                     read_data_from_p = open(filraw, 'rb')
                 else:
                     print('Raw data is not there. This is first run, writing to ' + filraw)
+                    print('WARNING!! This could take considerable space on disk')
                     write_data_to_p = open(filraw, 'wb')
 
             try:

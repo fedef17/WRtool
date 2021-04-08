@@ -110,9 +110,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase rebase_to_control var_long_name var_std_name var_units plot_cb_label multiple_areas multiple_seasons'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase rebase_to_control var_long_name var_std_name var_units plot_cb_label multiple_areas multiple_seasons dump_regridded'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str, bool, str, str, str, str, list, list]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str, bool, str, str, str, str, list, list, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -174,6 +174,7 @@ defaults['var_units'] = 'm'
 defaults['plot_cb_label'] = 'Geopotential height anomaly (m)'
 defaults['multiple_areas'] = None
 defaults['multiple_seasons'] = None
+defaults['dump_regridded'] = False
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:
@@ -561,14 +562,28 @@ for (area, season) in inputs['multiple_area_season']:
                 climate_mean = None
                 dates_climate_mean = None
 
+            read_data_from_p = None
+            write_data_to_p = None
+            if inputs['dump_regridded']:
+                filraw = inputs['cart_out'] + 'rawdata_' + std_outname(inputs['exp_name'], inputs) + '_' + modname + '.p'
+                if os.path.exists(filraw):
+                    print('Raw data exists. Reading from ' + filraw)
+                    read_data_from_p = open(filraw, 'rb')
+                else:
+                    print('Raw data is not there. This is first run, writing to ' + filraw)
+                    write_data_to_p = open(filraw, 'wb')
+
             try:
-                model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'], rebase_to_historical = inputs['rebase_to_historical'], climate_mean = climate_mean, dates_climate_mean = dates_climate_mean)
+                model_outs[modname] = cd.WRtool_from_file(filin, inputs['season'], area, extract_level_hPa = inputs['level'], regrid_to_reference_cube = ref_cube, numclus = inputs['numclus'], heavy_output = inputs['heavy_output'], run_significance_calc = inputs['run_sig_calc'], ref_solver = ref_solver, ref_patterns_area = ref_patterns_area, sel_yr_range = inputs['year_range'], numpcs = inputs['numpcs'], perc = inputs['perc'], use_reference_eofs = inputs['use_reference_eofs'], use_reference_clusters = inputs['use_reference_clusters'], ref_clusters_centers = ref_clusters_centers, netcdf4_read = inputs['netcdf4_read'], wnd_days = inputs['wnd_days'], bad_matching_rule = inputs['bad_matching_rule'], matching_hierarchy = inputs['matching_hierarchy'], area_dtr = inputs['area_dtr'], detrend_only_global = inputs['detrend_only_global'], remove_29feb = inputs['remove_29feb'], pressure_levels = inputs['pressure_levels'], calc_gradient = inputs['calc_gradient'], supervised_clustering = inputs['supervised_clustering'], frac_super = inputs['frac_super'], select_area_first = inputs['select_area_first'], deg_dtr = inputs['deg_dtr'], detrend_local_linear = inputs['detrend_local_linear'], rebase_to_historical = inputs['rebase_to_historical'], climate_mean = climate_mean, dates_climate_mean = dates_climate_mean, read_from_p = read_data_from_p, write_to_p = write_data_to_p)
             except Exception as exc:
                 if inputs['ignore_model_error']:
                     print('\n\n\n WARNING!!! EXCEPTION FOUND WHEN RUNNING MODEL {}: {}\n\n\n'.format(modname, exc))
                     continue
                 else:
                     raise exc
+
+            if read_data_from_p is not None: read_data_from_p.close()
+            if write_data_to_p is not None: write_data_to_p.close()
 
         if len(list(model_outs.keys())) == 0:
             raise ValueError('NO MODEL WAS RUN. CHECK LOG FILE')

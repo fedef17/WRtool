@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 import pickle
 from scipy import io
 import iris
+import xarray as xr
 
 import climtools_lib as ctl
 import climdiags as cd
@@ -498,11 +499,14 @@ for (area, season) in inputs['multiple_area_season']:
                 inputs['use_reference_clusters'] = False
 
         if inputs['regrid_model_data']:
-            print('Regrid of model data to reference grid is set to True. Loading reference iris cube..')
+            print('Regrid of model data to reference grid is set to True. Loading reference cube..')
             if inputs['netcdf4_read']:
                 inputs['netcdf4_read'] = False
                 print('<netcdf4_read> set to False.')
-            ref_cube = iris.load(inputs['ERA_ref_orig'])[0]
+            if inputs['iris_read']:
+                ref_cube = iris.load(inputs['ERA_ref_orig'])[0]
+            else:
+                ref_cube = xr.load_dataset(inputs['ERA_ref_orig'])
         else:
             ref_cube = None
 

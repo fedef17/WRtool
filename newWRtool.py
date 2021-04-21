@@ -111,9 +111,9 @@ if len(sys.argv) > 1:
 else:
     file_input = 'input_WRtool.in'
 
-keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase rebase_to_control var_long_name var_std_name var_units plot_cb_label multiple_areas multiple_seasons dump_regridded'
+keys = 'exp_name cart_in cart_out_general filenames model_names level season area numclus numpcs flag_perc perc ERA_ref_orig ERA_ref_folder run_sig_calc run_compare patnames patnames_short heavy_output model_tags year_range groups group_symbols reference_group use_reference_eofs obs_name filelist visualization bounding_lat plot_margins custom_area is_ensemble ens_option draw_rectangle_area use_reference_clusters out_netcdf out_figures out_only_main_figs taylor_mark_dim starred_field_names use_seaborn color_palette netcdf4_read ref_clus_order_file wnd_days show_transitions central_lat central_lon draw_grid cmip6_naming bad_matching_rule matching_hierarchy ref_year_range area_dtr detrend_only_global remove_29feb regrid_model_data single_model_ens_list plot_type custom_naming_keys pressure_levels calc_gradient supervised_clustering frac_super ignore_model_error select_area_first deg_dtr is_seasonal detrend_local_linear rebase_to_historical file_hist_rebase rebase_to_control var_long_name var_std_name var_units plot_cb_label multiple_areas multiple_seasons dump_regridded iris_read'
 keys = keys.split()
-itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str, bool, str, str, str, str, list, list, bool]
+itype = [str, str, str, list, list, float, str, str, int, int, bool, float, str, str, bool, bool, list, list, bool, list, list, dict, dict, str, bool, str, str, str, float, list, list, bool, str, bool, bool, bool, bool, bool, int, list, bool, str, bool, str, int, bool, float, float, bool, bool, str, list, list, str, bool, bool, bool, bool, str, list, bool, bool, bool, float, bool, bool, int, bool, bool, bool, str, bool, str, str, str, str, list, list, bool, bool]
 
 if len(itype) != len(keys):
     raise RuntimeError('Ill defined input keys in {}'.format(__file__))
@@ -176,6 +176,7 @@ defaults['plot_cb_label'] = 'Geopotential height anomaly (m)'
 defaults['multiple_areas'] = None
 defaults['multiple_seasons'] = None
 defaults['dump_regridded'] = False
+defaults['iris_read'] = False
 
 inputs = ctl.read_inputs(file_input, keys, n_lines = None, itype = itype, defaults = defaults)
 for ke in inputs:

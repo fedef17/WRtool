@@ -436,12 +436,12 @@ for (area, season) in inputs['multiple_area_season']:
         inputs['area'] = area
     inputs['season'] = season
 
-    if inputs['area'] == 'EAT' and inputs['numclus'] == 4:
+    if inputs['season'] == 'DJF' and inputs['area'] == 'EAT' and inputs['numclus'] == 4:
         if inputs['patnames'] is None:
             inputs['patnames'] = ['NAO +', 'Sc. Blocking', 'Atl. Ridge', 'NAO -']
         if inputs['patnames_short'] is None:
             inputs['patnames_short'] = ['NP', 'BL', 'AR', 'NN']
-    elif inputs['area'] == 'PNA' and inputs['numclus'] == 4:
+    elif inputs['season'] == 'DJF' and inputs['area'] == 'PNA' and inputs['numclus'] == 4:
         if inputs['patnames'] is None:
             inputs['patnames'] = ['Ala. Ridge', 'Pac. Trough', 'Arctic Low', 'Arctic High']
         if inputs['patnames_short'] is None:

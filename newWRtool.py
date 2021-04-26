@@ -52,7 +52,7 @@ def std_outname(tag, inputs, ref_name = False):
         name_outputs = '{}_{}_{}_{}clus'.format(tag, inputs['season'], areatag, inputs['numclus'])
 
     if inputs['flag_perc']:
-        name_outputs += '_{}perc'.format(inputs['perc'])
+        name_outputs += '_{}perc'.format(int(inputs['perc']))
     else:
         name_outputs += '_{}pcs'.format(inputs['numpcs'])
 

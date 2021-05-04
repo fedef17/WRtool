@@ -432,6 +432,10 @@ for (area, season) in inputs['multiple_area_season']:
     print('Area: {}, season {}\n'.format(area, season))
     print('-------------------------------------------------\n')
 
+    if len(inputs['multiple_area_season']) > 1:
+        inputs['patnames'] = None
+        inputs['patnames_short'] = None
+
     if inputs['area'] != 'custom':
         inputs['area'] = area
     inputs['season'] = season

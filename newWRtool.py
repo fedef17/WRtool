@@ -511,7 +511,13 @@ for (area, season) in inputs['multiple_area_season']:
             if inputs['iris_read']:
                 ref_cube = iris.load(inputs['ERA_ref_orig'])[0]
             else:
-                ref_cube = xr.load_dataset(inputs['ERA_ref_orig'])
+                if type(inputs['ERA_ref_orig']) is list:
+                    ref_cube = xr.load_dataset(inputs['ERA_ref_orig'][0])
+                elif '*' in inputs['ERA_ref_orig']:
+                    filsref = glob.glob(inputs['ERA_ref_orig'])
+                    ref_cube = xr.load_dataset(filsref[0])
+                else:
+                    ref_cube = xr.load_dataset(inputs['ERA_ref_orig'])
         else:
             ref_cube = None
 

@@ -12,11 +12,11 @@ from matplotlib import pyplot as plt
 
 import pickle
 from scipy import io
-import iris
+# import iris
 import xarray as xr
 
-import climtools_lib as ctl
-import climdiags as cd
+from climtools import climtools_lib as ctl
+from climtools import climdiags as cd
 from copy import deepcopy as copy
 import itertools as itt
 
